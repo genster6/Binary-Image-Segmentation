@@ -6,6 +6,11 @@ import skimage.measure
 import cv2
 import copy
 from PIL import Image
+import time #
+import pandas as pd#
+from skimage import color#
+import os#
+import sys#
 
 from . import AlgorithmParams
 from . import AlgorithmSpace
@@ -85,6 +90,69 @@ class GeneticHelp(object):
 				child[index] = random.choice(posVals[index])
 		return child		
 
+	'''
+	function to calculate number of sets in our test image 
+	that map to more than one set in our truth image, and how many
+	pixels are in those sets. Used in fitness function below.
+	INPUTS: truth image, infer image
+	RETURNS: number of repeated sets, number of pixels in repeated sets
+	'''
+	def set_fitness_func(a_test, b_test, include_L = False):
+		a_test_int = a_test.ravel().astype(int) # turn float array into int array
+		b_test_int = b_test.ravel().astype(int) # turn float array into in array
+
+		# create char array to separate two images
+		filler = np.chararray((len(a_test_int))) 
+		filler[:] = ':'
+
+		# match arrays so we can easily compare
+		matched = np.core.defchararray.add(a_test_int.astype(str), filler.astype(str))
+		matched = np.core.defchararray.add(matched, b_test_int.astype(str))
+
+		# collect unique set pairings
+		unique_sets = np.unique(matched)
+
+		# count number of pixels for each set pairing
+		set_counts = {}
+		for i in unique_sets:
+			set_counts[i] = sum(np.core.defchararray.count(matched, i))
+		
+		# print statements for debugging
+	#     print('UNIQUE: ', unique_sets) # see set pairings
+	#     print('SET_COUNTS: ', set_counts) # see counts
+		
+		## counts every repeated set. EX: if we have (A, A, B, B, B, C) we get 5 repeated. 
+		sets = set() # init container that will hold all sets in infer. image
+		repeats = [] # init container that will hold all repeated sets
+		b_set_counts = {} # init container that will hold pixel counts for each repeated set
+		for i in unique_sets:
+			current_set = i[i.find(':')+1:] # get inf. set from each pairing
+			if current_set in sets: # if repeat set
+				repeats.append(current_set) # add set to repeats list
+				b_set_counts[current_set].append(set_counts[i]) # add pixel count to set in dict.
+			elif current_set not in sets: # if new set
+				b_set_counts[current_set] = [set_counts[i]] # init. key and add pixel count
+				sets.add(current_set) # add set to sets container
+
+		# get number of repeated sets
+		num_repeats = len(np.unique(repeats)) + len(repeats) 
+		# num_repeats = len(sets)## get all sets in infer image
+
+		# count number of pixels in all repeated sets. Assumes pairing with max. num 
+		# of pixels is not error
+		repeat_count = 0
+		used_sets = set()
+		for i in b_set_counts.keys():
+			repeat_count += sum(b_set_counts[i]) - max(b_set_counts[i])
+			for j in unique_sets:
+				if j[j.find(':')+1:] == i and set_counts[j] == max(b_set_counts[i]):
+					used_sets.add(j[:j.find(':')])
+			
+		if include_L == True:
+			return num_repeats, repeat_count, used_sets
+		else:
+			return num_repeats, repeat_count
+
 	'''Takes in two ImageData obects and compares them according to
 	skimage's Structual Similarity Index and the mean squared error
 	Variables:
@@ -93,28 +161,50 @@ class GeneticHelp(object):
 	imgDim is the number of dimensions of the image.
 	'''
 	def __FitnessFunction(img1, img2, imgDim):	
-		assert(len(img1.shape) == len(img2.shape) == imgDim)
+		# assert(len(img1.shape) == len(img2.shape) == imgDim)
 
-		#The channel deterimines if this is a RGB or grayscale image
-		channel = False
-		if imgDim > 2: channel = True
-		#print(img1.dtype, img2.dtype)
-		img1 = np.uint8(img1)
-		#print(img1.dtype, img2.dtype)
-		assert(img1.dtype == img2.dtype)
-		#TODO: Change to MSE
-		#Comparing the Structual Similarity Index (SSIM) of two images
-		ssim = skimage.measure.compare_ssim(img1, img2, win_size=3, 
-			multichannel=channel, gaussian_weights=True)
-		#Comparing the Mean Squared Error of the two image
-		#print("About to compare")
-		#print(img1.shape, img2.shape, imgDim)
-		#mse = skimage.measure.compare_mse(img1, img2)
-		#Deleting the references to the objects and freeing memory
-		del img1
-		del img2
-		#print("eror above?")
-		return [abs(ssim),]
+		# #The channel deterimines if this is a RGB or grayscale image
+		# channel = False
+		# if imgDim > 2: channel = True
+		# #print(img1.dtype, img2.dtype)
+		# img1 = np.uint8(img1)
+		# #print(img1.dtype, img2.dtype)
+		# assert(img1.dtype == img2.dtype)
+		# #TODO: Change to MSE
+		# #Comparing the Structual Similarity Index (SSIM) of two images
+		# ssim = skimage.measure.compare_ssim(img1, img2, win_size=3, 
+		# 	multichannel=channel, gaussian_weights=True)
+		# #Comparing the Mean Squared Error of the two image
+		# #print("About to compare")
+		# #print(img1.shape, img2.shape, imgDim)
+		# #mse = skimage.measure.compare_mse(img1, img2)
+		# #Deleting the references to the objects and freeing memory
+		# del img1
+		# del img2
+		# #print("eror above?")
+		# return [abs(ssim),]
+
+		# makes sure images are in grayscale
+		if len(img1.shape) > 2: 
+			img1 = color.rgb2gray(img1)
+		if len(img2.shape) > 2: ## comment out
+			img2 = color.rgb2gray(img2) ## comment out
+		# img2 = img2[:,:,0]#color.rgb2gray(true_im) # convert to grayscale
+		# img2[img2[:,:] != 0] = 1
+		# makes sure images can be read as segmentation labels (i.e. integers)
+		img1 = pd.factorize(img1.ravel())[0].reshape(img1.shape)
+		img2 = pd.factorize(img2.ravel())[0].reshape(img2.shape)
+
+		num_repeats, repeat_count, used_sets = GeneticHelp.set_fitness_func(img2, img1, True)
+		m = len(np.unique(img1))
+		n = len(np.unique(img2))
+		L = len(used_sets)
+		error = (repeat_count + 2)**np.log(abs(m - n)) / (L >= n)
+		# error = (repeat_count + 2)**(abs(m - n)+1)
+		if error <= 0 or error == np.inf or error == np.nan:
+			error = sys.maxsize
+			# print(error)
+		return [error,]
 
 	'''Runs an imaging algorithm given the parameters from the 
 		population
@@ -124,11 +214,10 @@ class GeneticHelp(object):
 	individual is the parameter that we chose
 	'''
 	def runAlgo(copyImg, groundImg, individual):
-
+		init = time.time()
 		img = copy.deepcopy(copyImg)
 		#Making an AlorithmParams object
 		params = AlgorithmParams.AlgorithmParams(img, individual)
-
 
 
 		Algo = AlgorithmSpace.AlgorithmSpace(params)
@@ -153,19 +242,16 @@ class GeneticHelp(object):
 		switcher = AlgoHelp().channelAlgos(img)
 
 
-		#If the algorithm is not right for the image, returna large 
-		#	number
-		if (params.getAlgo() not in switcher): return [100,]
+		# If the algorithm is not right for the image, return large number
+		if (params.getAlgo() not in switcher): return [sys.maxsize,]#[100,]
 		
 		#Running the algorithm and parameters on the image
-	
 		runAlg = AlgorithmSpace.AlgorithmSpace(params)
-		img = runAlg.runAlgo()
+		img = runAlg.runAlgo() # takes a long time ALGORITHMSPACE FUNCTION
 				#The algorithms in Masks and BoolArrs need to be applied to the
 		#	img
-	
+		
 		#Running the fitness function
-
 		evaluate = GeneticHelp.__FitnessFunction(np.array(img), 
-			groundImg.getImage(), len(np.array(img).shape))		
+			groundImg.getImage(), len(np.array(img).shape))	
 		return (evaluate)

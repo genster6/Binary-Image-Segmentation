@@ -131,6 +131,7 @@ class AlgoHelp(object) :
 		toolbox.register("evaluate", GA.runAlgo) #Fitness
 		toolbox.register("mutate", GA.mutate) #Mutation
 		toolbox.register("select", tools.selTournament, tournsize=5) #Selection
+		# toolbox.register("select", tools.selBest)
 		toolbox.register("map", futures.map) #So that we can use scoop
 		#May want to later do a different selection process
 		

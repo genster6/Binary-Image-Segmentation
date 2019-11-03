@@ -43,9 +43,10 @@ from GAHelpers.RandomHelp import RandomHelp as RandHelp
 
 #TODO: Make input params changeable by input arguments
 IMAGE_PATH = 'Image_data\\Coco_2017_unlabeled\\rgbd_plant'
-
+# IMAGE_PATH = 'Image_data\\RGB_Acer_palmaturu'
 #TODO: Change validation to ground_truth
 GROUNDTRUTH_PATH = 'Image_data\\Coco_2017_unlabeled\\rgbd_new_label'
+# GROUNDTRUTH_PATH = 'Image_data\\BW_Acer_palmaturu'
 #Quickshift relies on a C long. As this is platform dependent, I will change
 #this later. 
 SEED = 134
@@ -150,6 +151,12 @@ if __name__ == '__main__':
 		root, dirs, files in os.walk(GROUNDTRUTH_PATH) for name in
 		files]
 
+	# image_number = 0
+	# AllImages = [ImageData.ImageData(os.path.join(root, files[image_number])) for 
+	# 	root, dirs, files in os.walk(IMAGE_PATH)]
+	# GroundImages = [ImageData.ImageData(os.path.join(root, files[image_number])) for
+	# 	root, dirs, files in os.walk(GROUNDTRUTH_PATH)]
+
 	#Let's get all possible values in lists
 
 	#TODO: Make seed point input parameter
@@ -209,7 +216,7 @@ if __name__ == '__main__':
 	GroundImages = [GroundImages[0] for i in range(0, POPULATION)]
 	### TODO: Implement a save-state function:
 	# https://deap.readthedocs.io/en/master/tutorials/advanced/checkpoint.html
-
+	
 	'''try:
 		#A file name was given, so we load it
 		with open(sys.argv[1], "r") as cp_file:
@@ -230,16 +237,18 @@ if __name__ == '__main__':
 			ind.fitness.values = fit
 		hof = tools.HallOfFame(1)
 	'''
+
 	pop = toolbox.population()
-	fitnesses = list(map(toolbox.evaluate, Images, GroundImages, pop))
+	fitnesses = list(map(toolbox.evaluate, Images, GroundImages, pop)) #takes a lot of time 
 
 	for ind, fit in zip(pop, fitnesses):
 		ind.fitness.values = fit
 	hof = tools.HallOfFame(1)
+	
 	#Algo = AlgorithmSpace(AlgoParams)
 	extractFits = [ind.fitness.values[0] for ind in pop]
 	hof.update(pop)
-
+	# print('OLD: ', extractFits)
 	#stats = tools.Statistics(lambda ind: ind.fitness.values)
 	#stats.register("avg", np.mean)
 
@@ -277,7 +286,9 @@ if __name__ == '__main__':
 		gen += 1
 		print ("Generation: ", gen)
 		offspring = toolbox.select(pop, len(pop))
-		offspring = list(map(toolbox.clone, offspring))
+		#offspring = toolbox.select(pop, 2)
+		offspring = list(map(toolbox.clone, offspring)) #original code
+		# offspring = [toolbox.clone(ind) for ind in offspring] # changed to 
 
 		#crossover
 		for child1, child2 in zip(offspring[::2], offspring[1::2]):
@@ -296,19 +307,28 @@ if __name__ == '__main__':
 				toolbox.mutate(mutant, AllVals, flipProb)
 				del mutant.fitness.values
 
+
 		#Let's just evaluate the mutated and crossover individuals
-		invalInd = [ind for ind in offspring if not ind.fitness.valid]
+		invalInd = [ind for ind in offspring ]#if not ind.fitness.valid] # was "if not ind.fitness.valid"
 		NewImage = [AllImages[0] for i in range(0, len(invalInd))]
 		NewVal = [GroundImages[0] for i in range(0, len(invalInd))]
 		fitnesses = map(toolbox.evaluate, NewImage, NewVal, invalInd)
-		
+		# fitnesses = list(map(toolbox.evaluate, NewImage, NewVal, invalInd))#mycode
+		# fitnesses = toolbox.map(toolbox.evaluate, NewImage, NewVal, invalInd) #mycode
+
 		for ind, fit in zip(invalInd, fitnesses):
 			ind.fitness.values = fit
 
 		#Replacing the old population
 		pop[:] = offspring
+
+
 		hof.update(pop)
 		extractFits = [ind.fitness.values[0] for ind in pop]
+		print(hof[0])
+		# print(extractFits)
+		# hof.update(pop)
+
 		#Evaluating the new population
 		leng = len(pop)
 		mean = sum(extractFits) / leng

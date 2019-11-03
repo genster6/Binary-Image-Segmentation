@@ -3,6 +3,7 @@ import os
 from PIL import Image
 import numpy as np
 import sys
+import time
 #from . import ImageData
 
 class FileClass(object):
@@ -27,6 +28,7 @@ class FileClass(object):
 	def convertMask(imgArr):
 		multiImg = np.ndarray(imgArr.shape[0] * imgArr.shape[1] * 3)
 		multiImg.shape = (imgArr.shape[0], imgArr.shape[1], 3)
+		
 		#0 is black, 134 is red
 		for le in range(0, len(imgArr)):
 			for wi in range(0, len(imgArr[0])):
@@ -37,7 +39,6 @@ class FileClass(object):
 					multiImg[le][wi] = [0,0,134]
 				else:
 					multiImg[le][wi] = [0,0,0]
-
 		return multiImg
 
 	#img is an ImageData object

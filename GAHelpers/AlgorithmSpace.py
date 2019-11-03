@@ -14,7 +14,7 @@ from . import FileClass
 from .FileClass import FileClass
 from .AlgorithmHelper import AlgoHelp
 from PIL import Image
-
+import time #
 #from . import ImageData
 #from . import AlgorithmParams
 
@@ -479,11 +479,12 @@ class AlgorithmSpace(object):
 
 	#Runs the algorithm specified in params
 	def runAlgo(self):
+		init = time.time()
 		switcher = {
 			'RW': self.__runRandomWalker,
 			'FB': self.__runFelzenszwalb,
 			'SC': self.__runSlic,
-			'QS': self.__runQuickShift,
+			'QS': self.__runQuickShift, # takes a long time
 			'WS': self.__runWaterShed,
 			'CV': self.__runChanVese,
 			'MCV': self.__runMorphChanVese,
@@ -492,15 +493,14 @@ class AlgorithmSpace(object):
 			'FF': self.__runFloodFill
 			### Add the new algorithm here.
 		}
-		func = switcher.get(self.params.getAlgo(), "Invalid code")
-		
+
+		func = switcher.get(self.params.getAlgo(), "Invalid code") # will take long time
 		#These algrotihms only give masks, so are not usable 
 		#in the fitness function
-		
 
-		if self.params.getAlgo() in AlgoHelp().needMask():
-			return FileClass.convertMask(func())
-			
+		# if self.params.getAlgo() in AlgoHelp().needMask():##
+		# 	return FileClass.convertMask(func()) # takes a long time due to func()##
+		
 			#return self.func()
 		return func()
 
