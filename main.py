@@ -15,10 +15,11 @@ import sys
 import pickle
 
 #https://github.com/DEAP/deap
-from deap import algorithms
-from deap import base
-from deap import creator
-from deap import tools
+import deap
+#from deap import algorithms
+#from deap import base
+#from deap import creator
+#from deap import tools  
 from skimage import segmentation
 import scoop
 from scoop import futures
@@ -199,8 +200,6 @@ if __name__ == '__main__':
 	#https://deap.readthedocs.io/en/master/api/tools.html
 	#Creator factory builds new classes
 
-
-	
 	toolbox = AlgoHelp().makeToolbox(POPULATION, seedX, seedY, seedZ)
 
 	#Here we check if we have a saved state
@@ -235,7 +234,7 @@ if __name__ == '__main__':
 	
 		for ind, fit in zip(pop, fitnesses):
 			ind.fitness.values = fit
-		hof = tools.HallOfFame(1)
+		hof = deap.tools.HallOfFame(1)
 	'''
 
 	pop = toolbox.population()
@@ -243,13 +242,13 @@ if __name__ == '__main__':
 
 	for ind, fit in zip(pop, fitnesses):
 		ind.fitness.values = fit
-	hof = tools.HallOfFame(1)
+	hof = deap.tools.HallOfFame(1)
 	
 	#Algo = AlgorithmSpace(AlgoParams)
 	extractFits = [ind.fitness.values[0] for ind in pop]
 	hof.update(pop)
 	# print('OLD: ', extractFits)
-	#stats = tools.Statistics(lambda ind: ind.fitness.values)
+	#stats = deap.tools.Statistics(lambda ind: ind.fitness.values)
 	#stats.register("avg", np.mean)
 
 	#cxpb = probability of two individuals mating
