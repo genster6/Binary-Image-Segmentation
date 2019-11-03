@@ -325,7 +325,7 @@ if __name__ == '__main__':
 
 		hof.update(pop)
 		extractFits = [ind.fitness.values[0] for ind in pop]
-		print(hof[0])
+		# print(hof[0])
 		# print(extractFits)
 		# hof.update(pop)
 
