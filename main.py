@@ -42,10 +42,10 @@ from GAHelpers.RandomHelp import RandomHelp as RandHelp
 
 
 #TODO: Make input params changeable by input arguments
-IMAGE_PATH = 'Image_data\\Coco_2017_unlabeled\\rgbd_plant'
+IMAGE_PATH = 'Image_data/Coco_2017_unlabeled//rgbd_plant'
 # IMAGE_PATH = 'Image_data\\RGB_Acer_palmaturu'
 #TODO: Change validation to ground_truth
-GROUNDTRUTH_PATH = 'Image_data\\Coco_2017_unlabeled\\rgbd_new_label'
+GROUNDTRUTH_PATH = 'Image_data/Coco_2017_unlabeled/rgbd_new_label'
 # GROUNDTRUTH_PATH = 'Image_data\\BW_Acer_palmaturu'
 #Quickshift relies on a C long. As this is platform dependent, I will change
 #this later. 
