@@ -254,9 +254,11 @@ class GeneticHelp(object):
 		    
 		    #Running the fitness function
 		    evaluate = GeneticHelp.__FitnessFunction(np.array(img), groundImg.getImage(), len(np.array(img).shape))	
+		except KeyboardInterrupt as e:
+                    raise e
 		except:
 		    e = sys.exc_info()[0]
-		    write_to_page( "<p>Error: %s</p>" % e )print("ERROR in runAlg") 
+		    print(f"ERROR: {e}") 
 		    evaluate = [ 9999999999999999, ] 
 
 		return (evaluate)
