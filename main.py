@@ -59,6 +59,7 @@ CROSSOVER = 0
 
 
 if __name__ == '__main__':
+	print("starting")
 	
 	#The input arguments are Seed, population, generations, mutation, flipprob, crossover
 	SEED = int(sys.argv[1])

@@ -1,0 +1,18 @@
+#!/bin/bash --login
+#SBATCH -c 1
+#SBATCH -n 1
+#SBATCH --time=24:00:00
+#SBATCH --mem=2gb
+#SBATCH --mail-type=END
+
+env | grep SLURM
+
+#Log a copy of this script in the output file
+cat $0
+
+#Needed for js command
+module load powertools
+
+python main.py 134 1000 6 0.5 1 0.5 
+
+js -j $SLURM_JOB_ID

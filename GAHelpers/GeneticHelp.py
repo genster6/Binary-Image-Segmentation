@@ -246,12 +246,17 @@ class GeneticHelp(object):
 		if (params.getAlgo() not in switcher): return [sys.maxsize,]#[100,]
 		
 		#Running the algorithm and parameters on the image
-		runAlg = AlgorithmSpace.AlgorithmSpace(params)
-		img = runAlg.runAlgo() # takes a long time ALGORITHMSPACE FUNCTION
-				#The algorithms in Masks and BoolArrs need to be applied to the
-		#	img
-		
-		#Running the fitness function
-		evaluate = GeneticHelp.__FitnessFunction(np.array(img), 
-			groundImg.getImage(), len(np.array(img).shape))	
+		try:
+		    runAlg = AlgorithmSpace.AlgorithmSpace(params)
+		    img = runAlg.runAlgo() # takes a long time ALGORITHMSPACE FUNCTION
+		    		#The algorithms in Masks and BoolArrs need to be applied to the
+		    #	img
+		    
+		    #Running the fitness function
+		    evaluate = GeneticHelp.__FitnessFunction(np.array(img), groundImg.getImage(), len(np.array(img).shape))	
+		except:
+		    e = sys.exc_info()[0]
+		    write_to_page( "<p>Error: %s</p>" % e )print("ERROR in runAlg") 
+		    evaluate = [ 9999999999999999, ] 
+
 		return (evaluate)
