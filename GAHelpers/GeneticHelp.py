@@ -118,8 +118,8 @@ class GeneticHelp(object):
 			set_counts[i] = sum(np.core.defchararray.count(matched, i))
 		
 		# print statements for debugging
-	#     print('UNIQUE: ', unique_sets) # see set pairings
-	#     print('SET_COUNTS: ', set_counts) # see counts
+		#     print('UNIQUE: ', unique_sets) # see set pairings
+		#     print('SET_COUNTS: ', set_counts) # see counts
 		
 		## counts every repeated set. EX: if we have (A, A, B, B, B, C) we get 5 repeated. 
 		sets = set() # init container that will hold all sets in infer. image
