@@ -1,5 +1,5 @@
 
-
+import traceback
 import random
 import numpy as np
 import skimage.measure
@@ -259,6 +259,7 @@ class GeneticHelp(object):
 		except:
 		    e = sys.exc_info()[0]
 		    print(f"ERROR: {e}") 
+		    traceback.print_exc() 
 		    evaluate = [ 9999999999999999, ] 
 
 		return (evaluate)
