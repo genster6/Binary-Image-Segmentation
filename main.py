@@ -36,39 +36,37 @@ from GAHelpers.GeneticHelp import GeneticHelp as GA
 from GAHelpers import RandomHelp
 from GAHelpers.RandomHelp import RandomHelp as RandHelp
 
-
-# TODO Add checkpoint name so we can run two runs at once on the hpc.
-# TODO: Make all input params changeable by input arguments
-IMAGE_PATH = 'Image_data/Coco_2017_unlabeled//rgbd_plant'
-# IMAGE_PATH = 'Image_data\\RGB_Acer_palmaturu'
-# TODO: Change validation to ground_truth
-GROUNDTRUTH_PATH = 'Image_data/Coco_2017_unlabeled/rgbd_new_label'
-# GROUNDTRUTH_PATH = 'Image_data\\BW_Acer_palmaturu'
-# Quickshift relies on a C long. As this is platform dependent, I will change
-# this later.
-SEED = 134
-POPULATION = 1000
-GENERATIONS = 100
-MUTATION = 0
-FLIPPROB = 0
-CROSSOVER = 0
-
-# TODO rewrite "main" as part of a class or function structure.
-# TODO rewrite to make it pleasently parallel.
-if __name__ == '__main__':
-    print("starting")
+"""Function to parse the command line inputs"""
+def parseinput(argv):
+    # TODO Add checkpoint name so we can run two runs at once on the hpc.
+    # TODO: Make all input params changeable by input arguments
+    IMAGE_PATH = 'Image_data/Coco_2017_unlabeled//rgbd_plant'
+    # IMAGE_PATH = 'Image_data\\RGB_Acer_palmaturu'
+    # TODO: Change validation to ground_truth
+    GROUNDTRUTH_PATH = 'Image_data/Coco_2017_unlabeled/rgbd_new_label'
+    # GROUNDTRUTH_PATH = 'Image_data\\BW_Acer_palmaturu'
+    # Quickshift relies on a C long. As this is platform dependent, I will change
+    # this later.
+    SEED = 134
+    POPULATION = 1000
+    GENERATIONS = 100
+    MUTATION = 0
+    FLIPPROB = 0
+    CROSSOVER = 0
+    
+    print("Parsing Inputs")
 
     # The input arguments are Seed, population, generations, mutation, flipprob, crossover
-    SEED = int(sys.argv[1])
-    MUTATION = float(sys.argv[3])
+    SEED = int(argv[1])
+    MUTATION = float(argv[3])
     FLIPPROB = float()
 
     try:
-        SEED = int(sys.argv[1])
+        SEED = int(argv[1])
     except ValueError:
         print("Incorrect SEED value, please input an integer")
     try:
-        POPULATION = int(sys.argv[2])
+        POPULATION = int(argv[2])
         assert(POPULATION > 0)
     except ValueError:
         print("Incorrect POPULATION value: Please input a positive integer.")
@@ -78,7 +76,7 @@ if __name__ == '__main__':
         sys.exit(2)
 
     try:
-        GENERATIONS = int(sys.argv[3])
+        GENERATIONS = int(argv[3])
     except ValueError:
         print("Incorrect value for GENERATIONS. Please input a positive integer.")
         sys.exit(2)
@@ -87,7 +85,7 @@ if __name__ == '__main__':
         sys.exit(2)
 
     try:
-        MUTATION = float(sys.argv[4])
+        MUTATION = float(argv[4])
         assert(0 <= MUTATION <= 1)
 
     except ValueError:
@@ -98,7 +96,7 @@ if __name__ == '__main__':
         sys.exit(2)
 
     try:
-        FLIPPROB = float(sys.argv[5])
+        FLIPPROB = float(argv[5])
         assert(0 <= FLIPPROB <= 1)
     except ValueError:
         print("Incorrect value for FLIPPROB. Please input a positive percentage (decimal).")
@@ -108,7 +106,7 @@ if __name__ == '__main__':
         sys.exit(2)
 
     try:
-        CROSSOVER = float(sys.argv[6])
+        CROSSOVER = float(argv[6])
         assert(0 <= CROSSOVER <= 1)
     except ValueError:
         print(
@@ -118,18 +116,8 @@ if __name__ == '__main__':
         print(
             "Incorrect value for CROSSOVER. Please input a positive percentage (decimal).")
         sys.exit(2)
-
-    # Need to error check these
-
-    initTime = time.time()
-    # To determine the seed for debugging purposes
-    seed = random.randrange(sys.maxsize)
-    random.seed(seed)
-
-    print("Seed was:", seed)
-
-    # Will later have user input to find where the images are
-
+        
+        
     # Checking the directories
     if (FileClass.check_dir(IMAGE_PATH) == False):
         print('ERROR: Directory \"%s\" does not exist' % IMAGE_PATH)
@@ -138,6 +126,26 @@ if __name__ == '__main__':
     if(FileClass.check_dir(GROUNDTRUTH_PATH) == False):
         print("ERROR: Directory \"%s\" does not exist" % VALIDATION_PATH)
         sys.exit(1)
+        
+    return  IMAGE_PATH, GROUNDTRUTH_PATH, SEED, POPULATION, GENERATIONS, MUTATION, FLIPPROB, CROSSOVER
+
+
+# TODO rewrite "main" as part of a class or function structure.
+# TODO rewrite to make it pleasently parallel.
+"""Function to run the main GA search function"""
+def runsearch(argv):
+    
+    IMAGE_PATH, GROUNDTRUTH_PATH, SEED, POPULATION, GENERATIONS, MUTATION, FLIPPROB, CROSSOVER = parseinput(argv)
+    
+    # Need to error check these
+
+    initTime = time.time()
+    # To determine the seed for debugging purposes
+    seed = random.randrange(sys.maxsize)
+    random.seed(seed)
+    print("Seed was:", seed)
+
+    # Will later have user input to find where the images are
 
     # TODO: Take these out and change to getting one image
 
@@ -378,3 +386,7 @@ if __name__ == '__main__':
     for i in BestAvgs:
         file.write(str(i) + "\n")
     file.close()
+    
+if __name__ == '__main__':
+    runsearch(sys.argv)
+    
