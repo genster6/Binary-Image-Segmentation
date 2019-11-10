@@ -1,10 +1,8 @@
-#TODO: MAJOR: Seed search space
-#EMPHASIZE: We knew that it would not converge. good first step. future work is cool. What are bad numbers
-#Takeaways: built framework, validated frame, verified hypothesis (it didn't work), attempted scaling.
-#Comment in readme about pillow using 3.5.3. Can change pillow to matplotlib.
-#Add to Tasks?? about changeing pillow to matplotlib
-#Talk about finding baseline. "Dr. Colbry says that this is a complete success"
-
+#TODO: Input Seed search space
+#TODO: Rewrite code to use "import deap" and deap.base etc. to make easier to read
+#TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
+ 
+#TODO: Check each import to ensure it is required in the code below. Remove it necessary
 import numpy as np
 import os
 from PIL import Image
@@ -16,16 +14,14 @@ import pickle
 
 #https://github.com/DEAP/deap
 import deap
-#from deap import algorithms
-#from deap import base
-#from deap import creator
-#from deap import tools  
 from skimage import segmentation
 import scoop
 from scoop import futures
 import cv2
 import time
 
+#TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
+#TODO: I don't like the name GAHelplers. Name implies library will work for all GAs. This should be the segment library We need to come up with a good name. 
 from GAHelpers import ImageData
 from GAHelpers import AlgorithmSpace
 from GAHelpers.AlgorithmSpace import AlgorithmSpace
@@ -42,7 +38,8 @@ from GAHelpers.RandomHelp import RandomHelp as RandHelp
 
 
 
-#TODO: Make input params changeable by input arguments
+#TODO Add checkpoint name so we can run two runs at once on the hpc. 
+#TODO: Make all input params changeable by input arguments
 IMAGE_PATH = 'Image_data/Coco_2017_unlabeled//rgbd_plant'
 # IMAGE_PATH = 'Image_data\\RGB_Acer_palmaturu'
 #TODO: Change validation to ground_truth
@@ -57,7 +54,8 @@ MUTATION = 0
 FLIPPROB = 0
 CROSSOVER = 0
 
-
+#TODO rewrite "main" as part of a class or function structure.  
+#TODO rewrite to make it pleasently parallel.
 if __name__ == '__main__':
 	print("starting")
 	
@@ -282,7 +280,6 @@ if __name__ == '__main__':
 	#Calc fitness
 	#Update population
 	while gen < ngen:
-
 		gen += 1
 		print ("Generation: ", gen)
 		offspring = toolbox.select(pop, len(pop))
@@ -341,6 +338,8 @@ if __name__ == '__main__':
 		print(" Std: ", stdev)
 		print(" Size: ", leng)
 		print(" Time: ", time.time() - initTime)
+		print("Best Fitness: ", hof[0].fitness.values)
+		print(hof[0])
 		#Did we improve the population?
 		pastPop = pop
 		pastMin = min(extractFits)
