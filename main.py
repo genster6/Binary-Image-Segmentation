@@ -53,7 +53,7 @@ class SegmentImage():
     
     def __init__(self, argv=[]):
         if argv:
-            parseinput(argv)
+            self.parseinput(argv)
     
     """Function to parse the command line inputs"""
     def parseinput(self, argv):   
@@ -126,7 +126,7 @@ class SegmentImage():
             print('ERROR: Directory \"%s\" does not exist' % self.IMAGE_PATH)
             sys.exit(1)
 
-        if(FileClass.check_dir(GROUNDTRUTH_PATH) == False):
+        if(FileClass.check_dir(self.GROUNDTRUTH_PATH) == False):
             print("ERROR: Directory \"%s\" does not exist" % self.VALIDATION_PATH)
             sys.exit(1)
 
