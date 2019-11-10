@@ -5,7 +5,6 @@
 # TODO: Check each import to ensure it is required in the code below. Remove it necessary
 import numpy as np
 import os
-from PIL import Image
 import skimage
 import random
 from operator import attrgetter
@@ -17,7 +16,6 @@ import deap
 from skimage import segmentation
 import scoop
 from scoop import futures
-#import cv2
 import time
 
 # TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
