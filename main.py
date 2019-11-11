@@ -2,21 +2,15 @@
 # TODO: Rewrite code to use "import deap" and deap.base etc. to make easier to read
 # TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
 
-# TODO: Check each import to ensure it is required in the code below. Remove it necessary
-import numpy as np
-import os
-import skimage
+import time
 import random
-from operator import attrgetter
+import os
 import sys
 import pickle
 
+# TODO: Check each import to ensure it is required in the code below. Remove it necessary
 # https://github.com/DEAP/deap
 import deap
-from skimage import segmentation
-import scoop
-from scoop import futures
-import time
 
 # TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
 # TODO: I don't like the name GAHelplers. Name implies library will work for all GAs. This should be the segment library We need to come up with a good name.
@@ -24,15 +18,9 @@ from GAHelpers import ImageData
 from GAHelpers import AlgorithmSpace
 from GAHelpers.AlgorithmSpace import AlgorithmSpace
 from GAHelpers import AlgorithmParams
-
 from GAHelpers import FileClass
 from GAHelpers.FileClass import FileClass
-from GAHelpers import AlgorithmHelper
 from GAHelpers.AlgorithmHelper import AlgoHelp
-from GAHelpers import GeneticHelp
-from GAHelpers.GeneticHelp import GeneticHelp as GA
-from GAHelpers import RandomHelp
-from GAHelpers.RandomHelp import RandomHelp as RandHelp
 
 class SegmentImage():
     # TODO Add checkpoint name so we can run two runs at once on the hpc.
@@ -50,7 +38,8 @@ class SegmentImage():
     MUTATION = 0
     FLIPPROB = 0
     CROSSOVER = 0
-    
+
+    VALIDATION_PATH="" # Not sure how this is used    
     def __init__(self, argv=[]):
         if argv:
             self.parseinput(argv)
@@ -70,7 +59,7 @@ class SegmentImage():
             print("Incorrect SEED value, please input an integer")
         try:
             self.POPULATION = int(argv[2])
-            assert(self.POPULATION > 0)
+            assert self.POPULATION > 0
         except ValueError:
             print("Incorrect POPULATION value: Please input a positive integer.")
             sys.exit(2)
@@ -89,7 +78,7 @@ class SegmentImage():
 
         try:
             self.MUTATION = float(argv[4])
-            assert(0 <= self.MUTATION <= 1)
+            assert 0 <= self.MUTATION <= 1
 
         except ValueError:
             print("Please make sure that MUTATION is a positive percentage (decimal).")
@@ -100,7 +89,7 @@ class SegmentImage():
 
         try:
             self.FLIPPROB = float(argv[5])
-            assert(0 <= self.FLIPPROB <= 1)
+            assert 0 <= self.FLIPPROB <= 1
         except ValueError:
             print("Incorrect value for FLIPPROB. Please input a positive percentage (decimal).")
             sys.exit(2)
@@ -110,7 +99,7 @@ class SegmentImage():
 
         try:
             self.CROSSOVER = float(argv[6])
-            assert(0 <= self.CROSSOVER <= 1)
+            assert 0 <= self.CROSSOVER <= 1
         except ValueError:
             print(
                 "Incorrect value for CROSSOVER. Please input a positive percentage (decimal).")
