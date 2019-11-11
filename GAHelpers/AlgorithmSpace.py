@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import copy
 import skimage
-#from skimage import segmentation
+from skimage import segmentation
 from itertools import combinations
 import cv2
 from . import FileClass
