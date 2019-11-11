@@ -1,3 +1,4 @@
+
 from deap import algorithms
 from deap import base
 from deap import tools
@@ -49,7 +50,7 @@ class AlgoHelp(object) :
 			}
 		self.mask = ['FB', 'SC', 'QS', 'CV', 'FD']
 
-		self.usedAlgos = ['FF', 'MCV', 'AC', 'FB', 'CV', 'WS', 'QS']
+		self.usedAlgos = ['FF', 'MCV', 'AC', 'FB', 'CV', 'WS', 'QS']#['MCV', 'FB', 'CV', 'QS']#['FF', 'MCV', 'AC', 'FB', 'CV', 'WS', 'QS']
 
 		self.PosVals = [
 			copy.deepcopy(self.usedAlgos),
