@@ -11,6 +11,7 @@ import pickle
 # TODO: Check each import to ensure it is required in the code below. Remove it necessary
 # https://github.com/DEAP/deap
 import deap
+import cv2
 
 # TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
 # TODO: I don't like the name GAHelplers. Name implies library will work for all GAs. This should be the segment library We need to come up with a good name.

@@ -203,7 +203,7 @@ class GeneticHelp(object):
         m = len(np.unique(img1))
         n = len(np.unique(img2))
         L = len(used_sets)
-        error = (repeat_count + 2)**np.log(abs(m - n)) #/ (L >= n)
+        error = (repeat_count + 2)**np.log(abs(m - n)+1) #/ (L >= n)
         # error = (repeat_count + 2)**(abs(m - n)+1)
         if L < n or error <= 0 or error == np.inf or error == np.nan:
             error = sys.maxsize
