@@ -192,18 +192,19 @@ class GeneticHelp(object):
             img1 = color.rgb2gray(img1)
         if len(img2.shape) > 2:  # comment out
             img2 = color.rgb2gray(img2)  # comment out
-        # img2 = img2[:,:,0]#color.rgb2gray(true_im) # convert to grayscale
-        # img2[img2[:,:] != 0] = 1
+        #img2 = img2[:,:,0]#color.rgb2gray(true_im) # convert to grayscale
+        #img2[img2[:,:] != 0] = 1
         # makes sure images can be read as segmentation labels (i.e. integers)
         img1 = pd.factorize(img1.ravel())[0].reshape(img1.shape)
-        img2 = pd.factorize(img2.ravel())[0].reshape(img2.shape)
+        img2 = pd.factorize(img2.ravel())[0].reshape(img2.shape) #comment out
+        #img1 = img1[:106, :159]
 
         num_repeats, repeat_count, used_sets = GeneticHelp.set_fitness_func(
             img2, img1, True)
         m = len(np.unique(img1))
         n = len(np.unique(img2))
         L = len(used_sets)
-        error = (repeat_count + 2)**np.log(abs(m - n)+1) #/ (L >= n)
+        error = (repeat_count + 2)**np.log(abs(m - n)+2) #/ (L >= n)
         # error = (repeat_count + 2)**(abs(m - n)+1)
         if L < n or error <= 0 or error == np.inf or error == np.nan:
             error = sys.maxsize
@@ -263,6 +264,6 @@ class GeneticHelp(object):
             print(f"{params}")
             print(f"ERROR: {e}")
             traceback.print_exc()
-            evaluate=[9999999999999999, ]
+            evaluate=[sys.maxsize, ]
 
         return (evaluate)

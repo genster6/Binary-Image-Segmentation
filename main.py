@@ -27,10 +27,10 @@ class SegmentImage():
     # TODO Add checkpoint name so we can run two runs at once on the hpc.
     # TODO: Make all input params changeable by input arguments
     IMAGE_PATH = 'Image_data/Coco_2017_unlabeled//rgbd_plant'
-    # IMAGE_PATH = 'Image_data\\RGB_Acer_palmaturu'
+    #IMAGE_PATH = 'Image_data/sky_data'
     # TODO: Change validation to ground_truth
     GROUNDTRUTH_PATH = 'Image_data/Coco_2017_unlabeled/rgbd_new_label'
-    # GROUNDTRUTH_PATH = 'Image_data\\BW_Acer_palmaturu'
+    #GROUNDTRUTH_PATH = 'Image_data/sky_groundtruth'
     # Quickshift relies on a C long. As this is platform dependent, I will change
     # this later.
     SEED = 134
