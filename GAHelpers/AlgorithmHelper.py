@@ -50,7 +50,7 @@ class AlgoHelp(object) :
 			}
 		self.mask = ['FB', 'SC', 'QS', 'CV', 'FD']
 
-		self.usedAlgos = ['FF', 'FB', 'MCV', 'AC', 'CV', 'WS', 'QS']#['FF', 'MCV', 'AC', 'FB', 'CV', 'WS', 'QS']
+		self.usedAlgos = ['FB', 'FF', 'MCV', 'AC', 'CV', 'WS', 'QS']#['FB', 'FF', 'MCV', 'AC', 'FB', 'CV', 'WS', 'QS']
 
 		self.PosVals = [
 			copy.deepcopy(self.usedAlgos),
