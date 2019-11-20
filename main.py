@@ -130,8 +130,10 @@ class SegmentImage():
         # Need to error check these
 
         initTime = time.time()
+        #TODO: Seeting random seed to maxside seems wrong. Why would you do this?
         # To determine the seed for debugging purposes
-        seed = random.randrange(sys.maxsize)
+        seed = self.SEED 
+        #seed = random.randrange(sys.maxsize)
         random.seed(seed)
         print("Seed was:", seed)
 
