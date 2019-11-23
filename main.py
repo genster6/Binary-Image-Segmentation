@@ -144,16 +144,20 @@ class SegmentImage():
         # TODO: Take these out and change to getting one image
 
         # Making an ImageData object for all of the regular images
-        AllImages_names = [os.path.join(root, name) for
-                           root, dirs, files in os.walk(self.IMAGE_PATH) for name in files]
-        AllImages_names.sort()
-        AllImages = [ImageData.ImageData(name) for name in AllImages_names]
+        #AllImages_names = [os.path.join(root, name) for
+        #                   root, dirs, files in os.walk(self.IMAGE_PATH) for name in files]
+        #AllImages_names.sort()
+        #AllImages = [ImageData.ImageData(name) for name in AllImages_names]
+
+        AllImages = [ ImageData.ImageData('Image_data/Coco_2017_unlabeled//rgbd_plant/rgb_00_000_00.png') ]
 
         # Making an ImageData object for all of the labeled images
-        GI_Names = [os.path.join(root, name) for
-                    root, dirs, files in os.walk(self.GROUNDTRUTH_PATH) for name in files]
-        GI_Names.sort()
-        GroundImages = [ImageData.ImageData(name) for name in GI_Names]
+        #GI_Names = [os.path.join(root, name) for
+        #            root, dirs, files in os.walk(self.GROUNDTRUTH_PATH) for name in files]
+        #GI_Names.sort()
+        #GroundImages = [ImageData.ImageData(name) for name in GI_Names]
+
+        GroundImages = [ ImageData.ImageData('Image_data/Coco_2017_unlabeled/rgbd_new_label/label_00_000_000.png') ]
 
         # image_number = 0
         # AllImages = [ImageData.ImageData(os.path.join(root, files[image_number])) for
@@ -214,12 +218,13 @@ class SegmentImage():
 
         # TODO: Use copy better
         Images = [AllImages[0] for i in range(0, self.POPULATION)]
-        GImages = [GroundImages[0] for i in range(0, self.POPULATION)]
+        GroundImages = [GroundImages[0] for i in range(0, self.POPULATION)]
+
         # TODO: Implement a save-state function:
         # https://deap.readthedocs.io/en/master/tutorials/advanced/checkpoint.html
 
         
-        print(AllImages_names[0])
+        #print(AllImages_names[0])
 #         print(AllImages[0].getShape())
 #         print(GroundImages[0].getShape())
 
@@ -256,7 +261,6 @@ class SegmentImage():
         pop = toolbox.population()
         
         # takes a lot of time
-        print(toolbox.evaluate)
         fitnesses = list(map(toolbox.evaluate, Images, GroundImages, pop))
         
         for ind, fit in zip(pop, fitnesses):
