@@ -2,6 +2,8 @@
 # TODO: Rewrite code to use "import deap" and deap.base etc. to make easier to read
 # TODO: Avoid syntax "from x import y" As this makes the code harder to read and determine dependancies
 
+import matplotlib.pylab as plt
+
 import time
 import random
 import os
@@ -18,7 +20,7 @@ import cv2
 from GAHelpers import ImageData
 from GAHelpers import AlgorithmSpace
 from GAHelpers.AlgorithmSpace import AlgorithmSpace
-from GAHelpers import AlgorithmParams
+#from GAHelpers import AlgorithmParams
 from GAHelpers import FileClass
 from GAHelpers.FileClass import FileClass
 from GAHelpers.AlgorithmHelper import AlgoHelp
@@ -34,8 +36,8 @@ class SegmentImage():
     # Quickshift relies on a C long. As this is platform dependent, I will change
     # this later.
     SEED = 134
-    POPULATION = 1000
-    GENERATIONS = 100
+    POPULATION = 10
+    GENERATIONS = 10
     MUTATION = 0
     FLIPPROB = 0
     CROSSOVER = 0
@@ -142,13 +144,16 @@ class SegmentImage():
         # TODO: Take these out and change to getting one image
 
         # Making an ImageData object for all of the regular images
-        AllImages = [ImageData.ImageData(os.path.join(root, name)) for
-                     root, dirs, files in os.walk(self.IMAGE_PATH) for name in files]
+        AllImages_names = [os.path.join(root, name) for
+                           root, dirs, files in os.walk(self.IMAGE_PATH) for name in files]
+        AllImages_names.sort()
+        AllImages = [ImageData.ImageData(name) for name in AllImages_names]
 
         # Making an ImageData object for all of the labeled images
-        GroundImages = [ImageData.ImageData(os.path.join(root, name)) for
-                        root, dirs, files in os.walk(self.GROUNDTRUTH_PATH) for name in
-                        files]
+        GI_Names = [os.path.join(root, name) for
+                    root, dirs, files in os.walk(self.GROUNDTRUTH_PATH) for name in files]
+        GI_Names.sort()
+        GroundImages = [ImageData.ImageData(name) for name in GI_Names]
 
         # image_number = 0
         # AllImages = [ImageData.ImageData(os.path.join(root, files[image_number])) for
@@ -209,10 +214,24 @@ class SegmentImage():
 
         # TODO: Use copy better
         Images = [AllImages[0] for i in range(0, self.POPULATION)]
-        GroundImages = [GroundImages[0] for i in range(0, self.POPULATION)]
+        GImages = [GroundImages[0] for i in range(0, self.POPULATION)]
         # TODO: Implement a save-state function:
         # https://deap.readthedocs.io/en/master/tutorials/advanced/checkpoint.html
 
+        
+        print(AllImages_names[0])
+#         print(AllImages[0].getShape())
+#         print(GroundImages[0].getShape())
+
+#         fig = plt.figure(figsize=(20,20))
+#         ax = fig.add_subplot(1,2,1)
+#         ax.imshow(AllImages[0].getImage())
+#         ax = fig.add_subplot(1,2,2)
+#         ax.imshow(AllImages[1].getImage())
+        
+#         return
+        
+        
         '''try:
             #A file name was given, so we load it
             with open(sys.argv[1], "r") as cp_file:
@@ -235,9 +254,11 @@ class SegmentImage():
         '''
 
         pop = toolbox.population()
+        
         # takes a lot of time
+        print(toolbox.evaluate)
         fitnesses = list(map(toolbox.evaluate, Images, GroundImages, pop))
-
+        
         for ind, fit in zip(pop, fitnesses):
             ind.fitness.values = fit
         hof = deap.tools.HallOfFame(1)
