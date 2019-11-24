@@ -1,20 +1,36 @@
-#Strongly coupled with AlgorithmParams and AlgorithmHelper
-#https://scikit-image.org/docs/dev/api/skimage.segmentation.html#skimage.segmentation.active_contour
+''' Segmentor library designed to learn how to segment images using GAs.
+This libary actually does not incode the GA itself, instead it just defines
+the search parameters the evaluation funtions and the fitness function (comming soon)
+'''
 
-#TODO: Add color segmetation.  
-from collections import OrderedDict 
+#TODO: Research project-clean up the parameters class to reduce the search space
+#TODO: Change the seed from a number to a fraction 0-1 which is scaled to image rows and columns
+#TODO: Enumerate teh word based measures.
+
+from collections import OrderedDict
+import sys
 
 import numpy as np
 import skimage
 from skimage import segmentation
+from skimage import color
 from PIL import Image
+import pandas as pd #used in fitness? Can it be removed?
 
 #List of all algorithms
 algorithmspace = dict()
 
+def runAlgo(img, groundImg, individual):
+    print("Running Algorithm with fitness")
+    #img = copy.deepcopy(copyImg)
+    seg = algoFromParams(individual)
+    mask = seg.evaluate(img)
+    fitness = FitnessFunction(mask,groundImg)
+    return fitness
+
 def algoFromParams(individual):
     '''Converts a param list to an algorithm Assumes order 
-    defined in the segmentor class'''
+    defined in the parameters class'''
     if (individual[0] in algorithmspace):
         algorithm = algorithmspace[individual[0]]
         return algorithm(individual)
@@ -25,6 +41,11 @@ class parameters(OrderedDict):
     descriptions = dict()
     ranges = dict()
     pkeys = []
+#     Try to set defaults only once. 
+#     Current method may cause all kinds of weird problems.
+#     @staticmethod
+#     def __Set_Defaults__()
+    
     
     def __init__(self):
         self['algorithm'] = 'None'
@@ -88,7 +109,7 @@ class parameters(OrderedDict):
         self['mu'] = 0.0
 
         self.descriptions['lambda'] = 'A parameter for chan_vese and morphological_chan_vese'
-        self.ranges['lambda'] = [[1,1], [1,2], [2,1]]
+        self.ranges['lambda'] = "[(1,1), (1,2), (2,1)]"
         self['lambda'] = (1,1)
 
         self.descriptions['dt'] = '#An algorithm for chan_vese May want to make seperate level sets for different functions e.g. Morph_chan_vese vs morph_geo_active_contour'
@@ -104,7 +125,7 @@ class parameters(OrderedDict):
         self['init_level_set_morph'] = 'checkerboard'
 
         self.descriptions['smoothing'] = 'A parameter used in morphological_geodesic_active_contour'
-        self.ranges['smoothing'] = [i for i in range(1, 10)]
+        self.ranges['smoothing'] = "[i for i in range(1, 10)]"
         self['smoothing'] = 0.0
         
         self.descriptions['alpha'] = 'A parameter for inverse_guassian_gradient'
@@ -134,27 +155,26 @@ class parameters(OrderedDict):
 
     def __str__(self):
         out = ""
-        for k in self.pkeys:
-            out += self.printparam(k)
+        for index, k in enumerate(self.pkeys):
+            out += f"{index} "+ self.printparam(k)
         return out
         
     def tolist(self):
         plist = []
-        for key in pkeys:
+        for key in self.pkeys:
             plist.append(self.params[key])
         return plist
     
     def fromlist(self, individual):
         print("Parsing Parameter List")
-        for index, key in enumerate(self):
+        for index, key in enumerate(self.pkeys):
             self[key] = individual[index]       
         
 class segmentor(object):
     algorithm = ''
 
-    params = parameters()
-    
     def __init__(self, paramlist = None):
+        self.params = parameters()
         if (paramlist):
             self.params.fromlist(paramlist)      
     
@@ -162,28 +182,66 @@ class segmentor(object):
         return np.zeros(im.shape[0:1])
     
     def __str__(self):
-        mystring = f"{self.params['algorithm']} -- "
+        mystring = f"{self.params['algorithm']} -- \n"
         for p in self.paramindexes:
-            mystring += f"{mystring} {p} = {self.params[p]}\n"
+            mystring += f"\t{p} = {self.params[p]}\n"
         return mystring
     
-class Felzenszwalb(segmentor):
-    '''
-    #felzenszwalb
-    #ONLY WORKS FOR RGB
-    https://scikit-image.org/docs/stable/auto_examples/segmentation/plot_segmentations.html
-    The felzenszwalb algorithms computes a graph based on the segmentation
-    Produces an oversegmentation of the multichannel using min-span tree.
-    Returns an integer mask indicating the segment labels
+class ColorThreshold(segmentor):   
+    
+    def __init__(self, paramlist=None):
+        super(ColorThreshold, self).__init__(paramlist)
+        if not paramlist:
+            self.params['algorithm'] = 'CT'
+            self.params['channel'] = 1
+            self.params['mu'] = 0.4
+            self.params['sigma'] = 0.6
+        self.paramindexes = ['channel', 'sigma', 'mu']
 
-    #Variables
-    scale: float, higher meanse larger clusters
-    sigma: float, std. dev of Gaussian kernel for preprocessing
-    min_size: int, minimum component size. For postprocessing
-    mulitchannel: bool, Whether the image is 2D or 3D. 2D images
-    are not supported at all
-    '''
-   
+        
+    def evaluate(self, img):
+        if (len(img.shape) > 2):
+            if self.params['channel'] < img.shape[2]:
+                channel = img[:,:,self.params['channel']]
+            else:
+                channel = img[:,:,0]
+        else:
+            channel = img
+        pscale = np.max(channel)
+        mx = self.params['sigma']*pscale
+        mn = self.params['mu']*pscale
+        if mx < mn:
+            temp = mx
+            mx = mn
+            mn = temp
+        
+        output = np.ones(channel.shape)
+        output[channel < mn] = 0
+        output[channel > mx] = 0
+        
+        return output
+algorithmspace['CT'] = ColorThreshold
+
+    
+    
+    
+    
+'''
+#felzenszwalb
+#ONLY WORKS FOR RGB
+https://scikit-image.org/docs/stable/auto_examples/segmentation/plot_segmentations.html
+The felzenszwalb algorithms computes a graph based on the segmentation
+Produces an oversegmentation of the multichannel using min-span tree.
+Returns an integer mask indicating the segment labels
+
+#Variables
+scale: float, higher meanse larger clusters
+sigma: float, std. dev of Gaussian kernel for preprocessing
+min_size: int, minimum component size. For postprocessing
+mulitchannel: bool, Whether the image is 2D or 3D. 2D images
+are not supported at all
+'''
+class Felzenszwalb(segmentor):   
     def __doc__(self):
         myhelp = "Wrapper function for the scikit-image Felzenszwalb segmentor:"
         myhelp += f" xx {skimage.segmentation.random_walker.__doc__}"
@@ -191,11 +249,13 @@ class Felzenszwalb(segmentor):
     
     def __init__(self, paramlist=None):
         super(Felzenszwalb, self).__init__(paramlist)
-        self.params['algorithm'] = 'FB'
-        self.params['scale'] = 0.5
-        self.params['sigma']= 0.4   
-        self.params['min_size'] = 10
-        self.paramindexes = ['scale', 'sigma', 'min_size', 'channel']
+        if not paramlist:
+            self.params['algorithm'] = 'FB'
+            self.params['scale'] = 984
+            self.params['sigma']= 0.09   
+            self.params['min_size'] = 92
+        self.paramindexes = ['scale', 'sigma', 'min_size']
+
         
     def evaluate(self, img):
         multichannel = False
@@ -238,11 +298,12 @@ class Slic(segmentor):
     
     def __init__(self, paramlist=None):
         super(Slic, self).__init__(paramlist)
-        self.params['algorithm'] = 'SC'
-        self.params['n_segments'] = 2
-        self.params['compactness'] = 0.5
-        self.params['iterations']= 5   
-        self.params['sigma'] = 0.4
+        if not paramlist:
+            self.params['algorithm'] = 'SC'
+            self.params['n_segments'] = 5
+            self.params['compactness'] = 5
+            self.params['iterations']= 3 
+            self.params['sigma'] = 5
         self.paramindexes = ['n_segments', 'compactness', 'iterations', 'sigma']
         
  
@@ -256,6 +317,7 @@ class Slic(segmentor):
             compactness=self.params['compactness'], 
             max_iter=self.params['iterations'],
             sigma=self.params['sigma'],
+            convert2lab=True,
             multichannel=multichannel)
         return output
 algorithmspace['SC'] = Slic
@@ -280,11 +342,12 @@ class QuickShift(segmentor):
     
     def __init__(self, paramlist=None):
         super(QuickShift, self).__init__(paramlist)
-        self.params['algorithm'] = 'QS'
-        self.params['kernel_size'] = 2
-        self.params['max_dist'] = 20
-        self.params['sigma'] = 0.4
-        self.params['seed'] = 20
+        if not paramlist:
+            self.params['algorithm'] = 'QS'
+            self.params['kernel_size'] = 5
+            self.params['max_dist'] = 60
+            self.params['sigma'] = 5
+            self.params['seed'] = 1
         self.paramindexes = ['kernel_size', 'max_dist', 'sigma', 'seed']
 
     def evaluate(self, img):
@@ -319,8 +382,9 @@ class Watershed(segmentor):
     
     def __init__(self, paramlist=None):
         super(Watershed, self).__init__(paramlist)
-        self.params['algorithm'] = 'WS'
-        self.params['compactness'] = 2.0
+        if not paramlist:
+            self.params['algorithm'] = 'WS'
+            self.params['compactness'] = 2.0
         self.paramindexes = ['compactness']
 
     def evaluate(self, img):
@@ -369,12 +433,13 @@ class Chan_Vese(segmentor):
     #Abbreviation for Algorithm = CV
     def __init__(self, paramlist=None):
         super(Chan_Vese, self).__init__(paramlist)
-        self.params['algorithm'] = 'CV'
-        self.params['mu'] = 2.0
-        self.params['lambda'] = (10, 20)
-        self.params['iterations'] = 10
-        self.params['dt'] = 0.10
-        self.params['init_level_set_chan'] = 'checkerboard'
+        if not paramlist:
+            self.params['algorithm'] = 'CV'
+            self.params['mu'] = 2.0
+            self.params['lambda'] = (10, 20)
+            self.params['iterations'] = 10
+            self.params['dt'] = 0.10
+            self.params['init_level_set_chan'] = 'small disk'
         self.paramindexes = ['mu', 'lambda', 'iterations', 'dt', 'init_level_set_chan']
         
     def evaluate(self, img):
@@ -426,11 +491,12 @@ class Morphological_Chan_Vese(segmentor):
 
     def __init__(self, paramlist=None):
         super(Morphological_Chan_Vese, self).__init__(paramlist)
-        self.params['algorithm'] = 'MCV'
-        self.params['iterations'] = 10
-        self.params['init_level_set_chan'] = 'checkerboard'
-        self.params['smoothing'] = 10
-        self.params['lambda'] = (10, 20)
+        if not paramlist:
+            self.params['algorithm'] = 'MCV'
+            self.params['iterations'] = 10
+            self.params['init_level_set_chan'] = 'checkerboard'
+            self.params['smoothing'] = 10
+            self.params['lambda'] = (10, 20)
         self.paramindexes = ['iterations','init_level_set_chan', 'smoothing', 'lambda']
         
     def evaluate(self, img):
@@ -480,13 +546,14 @@ class MorphGeodesicActiveContour(segmentor):
 
     def __init__(self, paramlist=None):
         super(MorphGeodesicActiveContour, self).__init__(paramlist)
-        self.params['algorithm'] = 'AC'
-        self.params['alpha'] = 0.2
-        self.params['sigma'] = 0.3
-        self.params['iterations'] = 10
-        self.params['init_level_set_morph'] = 'checkerboard'
-        self.params['smoothing'] = 5
-        self.params['balloon'] = 10
+        if not paramlist:
+            self.params['algorithm'] = 'AC'
+            self.params['alpha'] = 0.2
+            self.params['sigma'] = 0.3
+            self.params['iterations'] = 10
+            self.params['init_level_set_morph'] = 'checkerboard'
+            self.params['smoothing'] = 5
+            self.params['balloon'] = 10
         self.paramindexes = ['alpha', 'sigma', 'iterations', 'init_level_set_morph', 'smoothing', 'balloon']
 
     def evaluate(self, img):
@@ -644,4 +711,126 @@ algorithmspace['AC'] = MorphGeodesicActiveContour
 #             multichannel=True, return_full_prob=False) 
 #         return output
 
-        
+
+'''
+function to calculate number of sets in our test image
+that map to more than one set in our truth image, and how many
+pixels are in those sets. Used in fitness function below.
+INPUTS: truth image, infer image
+RETURNS: number of repeated sets, number of pixels in repeated sets
+'''
+def set_fitness_func(a_test, b_test, include_L=False):
+    a_test_int = a_test.ravel().astype(int)  # turn float array into int array
+    b_test_int = b_test.ravel().astype(int)  # turn float array into in array
+
+    assert(len(a_test_int == len(b_test_int)))
+    # create char array to separate two images
+    filler = np.chararray((len(a_test_int)))
+    filler[:] = ':'
+
+    # match arrays so we can easily compare
+    matched = np.core.defchararray.add(a_test_int.astype(str), filler.astype(str))
+    matched = np.core.defchararray.add(matched, b_test_int.astype(str))
+
+    # collect unique set pairings
+    unique_sets = np.unique(matched)
+
+    # count number of pixels for each set pairing
+    set_counts = {}
+    for i in unique_sets:
+        set_counts[i] = sum(np.core.defchararray.count(matched, i))
+
+    # print statements for debugging
+    #     print('UNIQUE: ', unique_sets) # see set pairings
+    #     print('SET_COUNTS: ', set_counts) # see counts
+
+    # counts every repeated set. EX: if we have (A, A, B, B, B, C) we get 5 repeated.
+    sets = set()  # init container that will hold all sets in infer. image
+    repeats = []  # init container that will hold all repeated sets
+    b_set_counts = {}  # init container that will hold pixel counts for each repeated set
+    for i in unique_sets:
+        current_set = i[i.find(':')+1:]  # get inf. set from each pairing
+        if current_set in sets:  # if repeat set
+            repeats.append(current_set)  # add set to repeats list
+            # add pixel count to set in dict.
+            b_set_counts[current_set].append(set_counts[i])
+        elif current_set not in sets:  # if new set
+            # init. key and add pixel count
+            b_set_counts[current_set] = [set_counts[i]]
+            sets.add(current_set)  # add set to sets container
+
+    # get number of repeated sets
+    num_repeats = len(np.unique(repeats)) + len(repeats)
+    # num_repeats = len(sets)## get all sets in infer image
+
+    # count number of pixels in all repeated sets. Assumes pairing with max. num
+    # of pixels is not error
+    repeat_count = 0
+    used_sets = set()
+    for i in b_set_counts.keys():
+        repeat_count += sum(b_set_counts[i]) - max(b_set_counts[i])
+        for j in unique_sets:
+            if j[j.find(':')+1:] == i and set_counts[j] == max(b_set_counts[i]):
+                used_sets.add(j[:j.find(':')])
+
+    if include_L == True:
+        return num_repeats, repeat_count, used_sets
+    else:
+        return num_repeats, repeat_count
+
+'''Takes in two ImageData obects and compares them according to
+skimage's Structual Similarity Index and the mean squared error
+Variables:
+img1 is an image array segmented by the algorithm.
+img2 is the validation image
+imgDim is the number of dimensions of the image.
+'''
+def FitnessFunction(img1, img2):
+    # assert(len(img1.shape) == len(img2.shape) == imgDim)
+
+    # #The channel deterimines if this is a RGB or grayscale image
+    # channel = False
+    # if imgDim > 2: channel = True
+    # #print(img1.dtype, img2.dtype)
+    # img1 = np.uint8(img1)
+    # #print(img1.dtype, img2.dtype)
+    # assert(img1.dtype == img2.dtype)
+    # #TODO: Change to MSE
+    # #Comparing the Structual Similarity Index (SSIM) of two images
+    # ssim = skimage.measure.compare_ssim(img1, img2, win_size=3,
+    #    multichannel=channel, gaussian_weights=True)
+    # #Comparing the Mean Squared Error of the two image
+    # #print("About to compare")
+    # #print(img1.shape, img2.shape, imgDim)
+    # #mse = skimage.measure.compare_mse(img1, img2)
+    # #Deleting the references to the objects and freeing memory
+    # del img1
+    # del img2
+    # #print("eror above?")
+    # return [abs(ssim),]
+
+    # makes sure images are in grayscale
+    if len(img1.shape) > 2:
+        print("img1 not in grayscale")
+        img1 = color.rgb2gray(img1)
+    if len(img2.shape) > 2:  # comment out
+        print("img2 not in grayscale")
+        img2 = color.rgb2gray(img2)  # comment out
+    #img2 = img2[:,:,0]#color.rgb2gray(true_im) # convert to grayscale
+    #img2[img2[:,:] != 0] = 1
+    # makes sure images can be read as segmentation labels (i.e. integers)
+    img1 = pd.factorize(img1.ravel())[0].reshape(img1.shape)
+    img2 = pd.factorize(img2.ravel())[0].reshape(img2.shape) #comment out
+    #img1 = img1[:106, :159]
+
+    num_repeats, repeat_count, used_sets = set_fitness_func(img2, img1, True)
+    m = len(np.unique(img1))
+    n = len(np.unique(img2))
+    L = len(used_sets)
+    error = (repeat_count + 2)**np.log(abs(m - n)+2) #/ (L >= n)
+    # error = (repeat_count + 2)**(abs(m - n)+1)
+    if (L < n) or error <= 0 or error == np.inf or error == np.nan:
+        print(f"ERROR FOUND USING MAXSIZE - {L} < {n} or {error} <= 0 or {error} == np.inf or {error} == np.nan:")
+        error = sys.maxsize
+        # print(error)
+    return [error, ]
