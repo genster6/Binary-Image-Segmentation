@@ -20,13 +20,17 @@ import pandas as pd #used in fitness? Can it be removed?
 #List of all algorithms
 algorithmspace = dict()
 
-def runAlgo(img, groundImg, individual):
-    print("Running Algorithm with fitness")
+def runAlgo(img, groundImg, individual, returnMask=False):
+    print(f"Running Algorithm {individual[0]}")
     #img = copy.deepcopy(copyImg)
     seg = algoFromParams(individual)
     mask = seg.evaluate(img)
+    print("Calculating Fitness")
     fitness = FitnessFunction(mask,groundImg)
-    return fitness
+    if returnMask:
+        return [fitness, mask]
+    else:
+        return fitness
 
 def algoFromParams(individual):
     '''Converts a param list to an algorithm Assumes order 
@@ -41,113 +45,114 @@ class parameters(OrderedDict):
     descriptions = dict()
     ranges = dict()
     pkeys = []
+    
+    ranges['algorithm'] = "['CT','FB','SC','WS','CV','MCV','AC']"
+    descriptions['algorithm'] = 'string code for the algorithm'
+
+    descriptions['beta'] = 'A parameter for randomWalker So, I should take this out'
+    ranges['beta'] = "[i for i in range(0,10000)]"
+    
+    descriptions['tolerance'] = 'A parameter for flood and flood_fill'
+    ranges['tolerance'] = "[float(i)/1000 for i in range(0,1000,1)]"
+    
+    descriptions['scale'] = 'A parameter for felzenszwalb'
+    ranges['scale'] = "[i for i in range(0,10000)]"
+    
+    descriptions['sigma'] = 'sigma value. A parameter for felzenswalb, inverse_guassian_gradient, slic, and quickshift'
+    ranges['sigma'] = "[float(i)/100 for i in range(0,10,1)]"
+    
+    descriptions['min_size'] = 'parameter for felzenszwalb'
+    ranges['min_size'] = "[i for i in range(0,10000)]"
+    
+    descriptions['n_segments'] = 'A parameter for slic'
+    ranges['n_segments'] = "[i for i in range(2,10000)]"
+    
+    descriptions['iterations'] = 'A parameter for both morphological algorithms'
+    ranges['iterations'] = "[10, 10]"
+    
+    descriptions['ratio'] = 'A parameter for ratio'
+    ranges['ratio'] = "[float(i)/100 for i in range(0,100)]"
+    
+    descriptions['kernel_size'] = 'A parameter for kernel_size'
+    ranges['kernel_size'] = "[i for i in range(0,10000)]"
+    
+    descriptions['max_dist'] = 'A parameter for quickshift'
+    ranges['max_dist'] = "[i for i in range(0,10000)]"
+    
+    descriptions['seed'] = 'A parameter for quickshift, and perhaps other random stuff'
+    ranges['seed'] = "[134]"
+    
+    descriptions['connectivity'] = 'A parameter for flood and floodfill'
+    ranges['connectivity'] = "[i for i in range(0, 9)]"
+    
+    descriptions['compactness'] = 'A parameter for slic and watershed'
+    ranges['compactness'] = "[0.0001,0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]"
+    
+    descriptions['mu'] = 'A parameter for chan_vese'
+    ranges['mu'] = "[float(i)/100 for i in range(0,100)]"
+    
+    descriptions['lambda'] = 'A parameter for chan_vese and morphological_chan_vese'
+    ranges['lambda'] = "[(1,1), (1,2), (2,1)]"
+    
+    descriptions['dt'] = '#An algorithm for chan_vese May want to make seperate level sets for different functions e.g. Morph_chan_vese vs morph_geo_active_contour'
+    ranges['dt'] = "[float(i)/10 for i in range(0,100)]"
+    
+    descriptions['init_level_set_chan'] = 'A parameter for chan_vese and morphological_chan_vese'
+    ranges['init_level_set_chan'] = "['checkerboard', 'disk', 'small disk']"
+    
+    descriptions['init_level_set_morph'] = 'A parameter for morphological_chan_vese'
+    ranges['init_level_set_morph'] = "['checkerboard', 'circle']"
+    
+    descriptions['smoothing'] = 'A parameter used in morphological_geodesic_active_contour'
+    ranges['smoothing'] = "[i for i in range(1, 10)]"
+    
+    descriptions['alpha'] = 'A parameter for inverse_guassian_gradient'
+    ranges['alpha'] = "[i for i in range(0,10000)]"
+    
+    descriptions['balloon'] = 'A parameter for morphological_geodesic_active_contour'
+    ranges['balloon'] = "[i for i in range(-50,50)]"
+    
+    descriptions['seed_pointX'] = 'A parameter for flood and flood_fill'
+    ranges['seed_pointX'] = "[0.0]"
+    
+    descriptions['seed_pointY'] = '??'
+    ranges['seed_pointY'] = "[0.0]"
+    
+    descriptions['seed_pointZ'] = '??'
+    ranges['seed_pointZ'] = "[0.0]"
+
 #     Try to set defaults only once. 
 #     Current method may cause all kinds of weird problems.
 #     @staticmethod
 #     def __Set_Defaults__()
-    
-    
+
+
     def __init__(self):
         self['algorithm'] = 'None'
-        self.ranges['algorithm'] = "['FB','SC','WS','CV','MCV','AC']"
-        self.descriptions['algorithm'] = 'string code for the algorithm'
-        
-        self.descriptions['beta'] = 'A parameter for randomWalker So, I should take this out'
-        self.ranges['beta'] = "[i for i in range(0,10000)]"
         self['beta'] = 0.0
-
-        self.descriptions['tolerance'] = 'A parameter for flood and flood_fill'
-        self.ranges['tolerance'] = "[float(i)/1000 for i in range(0,1000,1)]"
         self['tolerance'] = 0.0
-
-        self.descriptions['scale'] = 'A parameter for felzenszwalb'
-        self.ranges['scale'] = "[i for i in range(0,10000)]"
         self['scale'] = 0.0
-
-        self.descriptions['sigma'] = 'sigma value. A parameter for felzenswalb, inverse_guassian_gradient, slic, and quickshift'
-        self.ranges['sigma'] = "[float(i)/100 for i in range(0,10,1)]"
         self['sigma'] = 0.0
-        
-        self.descriptions['min_size'] = 'parameter for felzenszwalb'
-        self.ranges['min_size'] = "[i for i in range(0,10000)]"
         self['min_size'] = 0.0
-        
-        self.descriptions['n_segments'] = 'A parameter for slic'
-        self.ranges['n_segments'] = "[i for i in range(2,10000)]"
         self['n_segments'] = 0.0
-        
-        self.descriptions['iterations'] = 'A parameter for both morphological algorithms'
-        self.ranges['iterations'] = "[10, 10]"
         self['iterations'] = 10
-        
-        self.descriptions['ratio'] = 'A parameter for ratio'
-        self.ranges['ratio'] = "[float(i)/100 for i in range(0,100)]"
         self['ratio'] = 0.0
-        
-        self.descriptions['kernel_size'] = 'A parameter for kernel_size'
-        self.ranges['kernel_size'] = "[i for i in range(0,10000)]"
         self['kernel_size'] = 0.0
-        
-        self.descriptions['max_dist'] = 'A parameter for quickshift'
-        self.ranges['max_dist'] = "[i for i in range(0,10000)]"
         self['max_dist'] = 0.0
-        
-        self.descriptions['seed'] = 'A parameter for quickshift, and perhaps other random stuff'
-        self.ranges['seed'] = "[134]"
         self['seed'] = 0.0
-        
-        self.descriptions['connectivity'] = 'A parameter for flood and floodfill'
-        self.ranges['connectivity'] = "[i for i in range(0, 9)]"
         self['connectivity'] = 0.0
-        
-        self.descriptions['compactness'] = 'A parameter for slic and watershed'
-        self.ranges['compactness'] = "[0.0001,0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]"
         self['compactness'] = 0.0
-        
-        self.descriptions['mu'] = 'A parameter for chan_vese'
-        self.ranges['mu'] = "[float(i)/100 for i in range(0,100)]"
         self['mu'] = 0.0
-
-        self.descriptions['lambda'] = 'A parameter for chan_vese and morphological_chan_vese'
-        self.ranges['lambda'] = "[(1,1), (1,2), (2,1)]"
         self['lambda'] = (1,1)
-
-        self.descriptions['dt'] = '#An algorithm for chan_vese May want to make seperate level sets for different functions e.g. Morph_chan_vese vs morph_geo_active_contour'
-        self.ranges['dt'] = "[float(i)/10 for i in range(0,100)]"
         self['dt'] = 0.0
-
-        self.descriptions['init_level_set_chan'] = 'A parameter for chan_vese and morphological_chan_vese'
-        self.ranges['init_level_set_chan'] = "['checkerboard', 'disk', 'small disk']"
-        self['init_level_set_chan'] = 0.0
-
-        self.descriptions['init_level_set_morph'] = 'A parameter for morphological_chan_vese'
-        self.ranges['init_level_set_morph'] = "['checkerboard', 'circle']"
+        self['init_level_set_chan'] = 'disk'
         self['init_level_set_morph'] = 'checkerboard'
-
-        self.descriptions['smoothing'] = 'A parameter used in morphological_geodesic_active_contour'
-        self.ranges['smoothing'] = "[i for i in range(1, 10)]"
         self['smoothing'] = 0.0
-        
-        self.descriptions['alpha'] = 'A parameter for inverse_guassian_gradient'
-        self.ranges['alpha'] = "[i for i in range(0,10000)]"
         self['alpha'] = 0.0
-        
-        self.descriptions['balloon'] = 'A parameter for morphological_geodesic_active_contour'
-        self.ranges['balloon'] = "[i for i in range(-50,50)]"
         self['balloon'] = 0.0
-        
-        self.descriptions['seed_pointX'] = 'A parameter for flood and flood_fill'
-        self.ranges['seed_pointX'] = "[0.0]"
         self['seed_pointX'] = 0.0
-        
-        self.descriptions['seed_pointY'] = '??'
-        self.ranges['seed_pointY'] = "[0.0]"
         self['seed_pointY'] = 0.0
-        
-        self.descriptions['seed_pointZ'] = '??'
-        self.ranges['seed_pointZ'] = "[0.0]"
-        self['seed_pointZ'] = 0.0
-        
+        self['seed_pointZ'] = 0.0       
         self.pkeys = list(self.keys())
         
     def printparam(self, key):
@@ -166,7 +171,7 @@ class parameters(OrderedDict):
         return plist
     
     def fromlist(self, individual):
-        print("Parsing Parameter List")
+        print(f"Parsing Parameter List for {len(individual)} parameters")
         for index, key in enumerate(self.pkeys):
             self[key] = individual[index]       
         
@@ -193,16 +198,16 @@ class ColorThreshold(segmentor):
         super(ColorThreshold, self).__init__(paramlist)
         if not paramlist:
             self.params['algorithm'] = 'CT'
-            self.params['channel'] = 1
             self.params['mu'] = 0.4
             self.params['sigma'] = 0.6
-        self.paramindexes = ['channel', 'sigma', 'mu']
+        self.paramindexes = ['sigma', 'mu']
 
         
     def evaluate(self, img):
+        channel_num = 1 #TODO: Need to make this a searchable parameter.
         if (len(img.shape) > 2):
-            if self.params['channel'] < img.shape[2]:
-                channel = img[:,:,self.params['channel']]
+            if channel_num < img.shape[2]:
+                channel = img[:,:,channel_num]
             else:
                 channel = img[:,:,0]
         else:
@@ -221,10 +226,6 @@ class ColorThreshold(segmentor):
         
         return output
 algorithmspace['CT'] = ColorThreshold
-
-    
-    
-    
     
 '''
 #felzenszwalb
@@ -494,10 +495,10 @@ class Morphological_Chan_Vese(segmentor):
         if not paramlist:
             self.params['algorithm'] = 'MCV'
             self.params['iterations'] = 10
-            self.params['init_level_set_chan'] = 'checkerboard'
+            self.params['init_level_set_morph'] = 'checkerboard'
             self.params['smoothing'] = 10
             self.params['lambda'] = (10, 20)
-        self.paramindexes = ['iterations','init_level_set_chan', 'smoothing', 'lambda']
+        self.paramindexes = ['iterations','init_level_set_morph', 'smoothing', 'lambda']
         
     def evaluate(self, img):
         if(len(img.shape) == 3):
@@ -505,7 +506,7 @@ class Morphological_Chan_Vese(segmentor):
         output = skimage.segmentation.morphological_chan_vese(
             img, 
             iterations=self.params['iterations'],
-            init_level_set=	self.params['init_level_set_chan'],
+            init_level_set=	self.params['init_level_set_morph'],
             smoothing=self.params['smoothing'],
             lambda1=self.params['lambda'][0], 
             lambda2=self.params['lambda'][1])
@@ -830,7 +831,7 @@ def FitnessFunction(img1, img2):
     error = (repeat_count + 2)**np.log(abs(m - n)+2) #/ (L >= n)
     # error = (repeat_count + 2)**(abs(m - n)+1)
     if (L < n) or error <= 0 or error == np.inf or error == np.nan:
-        print(f"ERROR FOUND USING MAXSIZE - {L} < {n} or {error} <= 0 or {error} == np.inf or {error} == np.nan:")
+        print(f"WARNING: Fitness bounds exceeded, using Maxsize - {L} < {n} or {error} <= 0 or {error} == np.inf or {error} == np.nan:")
         error = sys.maxsize
         # print(error)
     return [error, ]

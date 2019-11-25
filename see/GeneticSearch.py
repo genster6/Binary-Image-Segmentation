@@ -1,5 +1,7 @@
 import random
+import copy
 
+import deap
 from deap import algorithms
 from deap import base
 from deap import tools
@@ -9,7 +11,7 @@ from scoop import futures
 from see import Segmentors
 
 
-# Executes a crossover between two numpy arrays of the same length
+'''Executes a crossover between two numpy arrays of the same length '''
 def twoPointCopy(np1, np2):
     assert(len(np1) == len(np2))
     size = len(np1)
@@ -61,10 +63,10 @@ def mutate(copyChild, posVals, flipProb=0.5):
         # Let's mutate
         child[0] = random.choice(posVals[0])
     # Now let's get the indexes (parameters) related to that value
-    switcher = AlgoHelp().algoIndexes()
-    indexes = switcher.get(child[0])
+    #switcher = AlgoHelp().algoIndexes()
+    #indexes = switcher.get(child[0])
 
-    for index in indexes:
+    for index in range(len(posVals)):
         randVal = random.random()
         if randVal < flipProb:
             # Then we mutate said value
@@ -80,41 +82,25 @@ def mutate(copyChild, posVals, flipProb=0.5):
     return child
 
 
+#TODO Make a toolbox from a list of individuals
+#TODO Save a population as a list of indivudals (with fitness functions?)
 def makeToolbox(pop_size):
 
-    seedX = 10;
-    seedY = 10;
-    seedZ = 20;
-    
     #Minimizing fitness function
     creator.create("FitnessMin", base.Fitness, weights=(-0.000001,))
-
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
     #The functions that the GA knows
     toolbox = base.Toolbox()
-    
-#     #Attribute generator
-#     toolbox.register("attr_bool", random.randint, 0, 1000)
 
     #Genetic functions
     toolbox.register("mate", skimageCrossRandom) #crossover
     toolbox.register("mutate", mutate) #Mutation
     toolbox.register("evaluate", Segmentors.runAlgo) #Fitness
-
     toolbox.register("select", tools.selTournament, tournsize=5) #Selection
-    # toolbox.register("select", tools.selBest)
     toolbox.register("map", futures.map) #So that we can use scoop
     
     #TODO: May want to later do a different selection process
-
-    #Here we register all the parameters to the toolbox
-#     SIGMA_MIN, SIGMA_MAX, SIGMA_WEIGHT = 0, 1, 0.5
-    
-    #Perhaps weight iterations
-#     ITER = 10
-#     SMOOTH_MIN, SMOOTH_MAX, SMOOTH_WEIGHT = 1, 4, 0.5
-#     BALLOON_MIN, BALLOON_MAX, BALLOON_WEIGHT = -1, 1, 0.9
 
     #We choose the parameters, for the most part, random
     params = Segmentors.parameters()
@@ -122,59 +108,112 @@ def makeToolbox(pop_size):
     for key in params.pkeys:
         toolbox.register(key, random.choice, eval(params.ranges[key]))
     
-#     #smoothing should be 1-4, but can be any positive number
-#     toolbox.register("attr_smooth", RandHelp.weighted_choice,
-#         self.PosVals[19], SMOOTH_MIN, SMOOTH_MAX, SMOOTH_WEIGHT)
-#     toolbox.register("attr_alphas", random.choice, self.PosVals[20])
-#     #Should be from -1 to 1, but can be any value
-#     toolbox.register("attr_balloon", RandHelp.weighted_choice, 
-#         self.PosVals[21], BALLOON_MIN, BALLOON_MAX, BALLOON_WEIGHT)
-
-    #Need to register a random seed_point
-    toolbox.register("attr_seed_pointX", random.choice, seedX)
-    toolbox.register("attr_seed_pointY", random.choice, seedY)
-    toolbox.register("attr_seed_pointZ", random.choice, seedZ)
-
-    #REGISTER MORE PARAMETERS TO THE TOOLBOX HERE
-    #FORMAT:
-    #toolbox.register("attr_param", random.choice, param_list)
-
-    #Container: data type
-    #func_seq: List of function objects to be called in order to fill 
-    #container
-    #n: number of times to iterate through list of functions
-    #Returns: An instance of the container filled with data returned 
-    #from functions
-    
     func_seq = []
-#     for key in params.pkeys:
-#         print(f"toolbox.{key}")
-        
-#     func_seq = [ eval(f"toolbox.{key}") for key in params.pkeys ]
-#     func_seq = [toolbox.attr_Algo, toolbox.attr_Beta, toolbox.attr_Tol,
-#         toolbox.attr_Scale, toolbox.attr_Sigma, toolbox.attr_minSize,
-#         toolbox.attr_nSegment, 
-#         toolbox.attr_iterations, toolbox.attr_ratio,
-#         toolbox.attr_kernel, toolbox.attr_maxDist, toolbox.attr_seed, 
-#         toolbox.attr_connect, toolbox.attr_compact, toolbox.attr_mu, 
-#         toolbox.attr_lambda, toolbox.attr_dt, toolbox.attr_init_chan,
-#         toolbox.attr_init_morph, toolbox.attr_smooth, 
-#         toolbox.attr_alphas, toolbox.attr_balloon, 
-#         toolbox.attr_seed_pointX, toolbox.attr_seed_pointY,
-#         toolbox.attr_seed_pointZ]
+    for key in params.pkeys:
+        func_seq.append(getattr(toolbox, key))
 
-    #AT THE END OF THE 'func_seq' ADD MORE PARAMETERS
-    #print(func_seq)
     #Here we populate our individual with all of the parameters
     toolbox.register("individual", tools.initCycle, creator.Individual, func_seq, n=1)
 
-
     #And we make our population
-    toolbox.register("population", tools.initRepeat, list, 
-        toolbox.individual, n=pop_size)
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual, n=pop_size)
 
-
-    #def makeToolBox(self):
     return toolbox
+
+class Evolver(object):
+    
+    AllVals = []
+    p = Segmentors.parameters()
+    for key in p.pkeys:
+        AllVals.append(eval(p.ranges[key]))   
+    
+    def __init__(self, img, mask, pop_size=10):
+        #Build Population based on size
+        self.img = img
+        self.mask = mask
+        self.tool = makeToolbox(pop_size)
+        self.hof = deap.tools.HallOfFame(1)
+        self.BestAvgs = []
+        self.gen = 0
+        self.cxpb, self.mutpb, self.flipProb = 0.2, 0.3, 0.1
+    
+    def newpopulation(self):
+        return self.tool.population()
+        
+        
+    def popfitness(self, tpop):
+        NewImage = [self.img for i in range(0, len(tpop))]
+        NewVal = [self.mask for i in range(0, len(tpop))]
+        fitnesses = map(self.tool.evaluate, NewImage, NewVal, tpop)
+
+        #TODO: Dirk is not sure exactly why we need these 
+        for ind, fit in zip(tpop, fitnesses):
+            ind.fitness.values = fit
+        extractFits = [ind.fitness.values[0] for ind in tpop]
+
+        self.hof.update(tpop)
+
+        #Algo = AlgorithmSpace(AlgoParams)
+
+        # Evaluating the new population
+        leng = len(tpop)
+        mean = sum(extractFits) / leng
+        self.BestAvgs.append(mean)
+        sum1 = sum(i*i for i in extractFits)
+        stdev = abs(sum1 / leng - mean ** 2) ** 0.5
+        print("Generation: ", self.gen)
+        print(" Min: ", min(extractFits))
+        print(" Max: ", max(extractFits))
+        print(" Avg: ", mean)
+        print(" Std: ", stdev)
+        print(" Size: ", leng)
+        #print(" Time: ", time.time() - initTime)
+        print("Best Fitness: ", self.hof[0].fitness.values)
+        print(self.hof[0])
+        # Did we improve the population?
+        pastPop = tpop
+        pastMin = min(extractFits)
+        pastMean = mean
+        
+        self.gen += self.gen
+        
+        return extractFits, tpop
+
+    def mutate(self, tpop):
+        #Calculate next population
+
+        offspring = self.tool.select(tpop, len(tpop))
+        offspring = list(map(self.tool.clone, offspring))  # original code
+
+        # crossover
+        for child1, child2 in zip(offspring[::2], offspring[1::2]):
+            # Do we crossover?
+            if random.random() < self.cxpb:
+                self.tool.mate(child1, child2)
+                # The parents may be okay values so we should keep them
+                # in the set
+                del child1.fitness.values
+                del child2.fitness.values
+
+        # mutation
+        for mutant in offspring:
+            if random.random() < self.mutpb:
+                self.tool.mutate(mutant, self.AllVals, self.flipProb)
+                del mutant.fitness.values
+
+        # Replacing the old population
+        return offspring
+
+    def nextgen(self, tpop):
+        fitness,tpop = self.popfitness(tpop)
+        return self.mutate(tpop)
+
+    
+    def run(self,ngen=10):
+        population = self.newpopulation()
+        for g in range(ngen):
+            population = self.nextgen(population)
+        return population
+             
 
 
