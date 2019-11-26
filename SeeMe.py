@@ -1,4 +1,6 @@
 import see
+
+from skimage import color
 import time
 import imageio
 import sys

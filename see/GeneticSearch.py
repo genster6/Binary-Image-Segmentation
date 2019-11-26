@@ -230,7 +230,7 @@ class Evolver(object):
         #new
         pop = self.tool.population()
         
-        final = boffspring + pop[0:ran]
+        final = offspring + pop[0:ran]
                 
         # Replacing the old population
         return final
