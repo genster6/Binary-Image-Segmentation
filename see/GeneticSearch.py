@@ -1,15 +1,14 @@
 import random
+import json
 import copy
 
 import deap
-from deap import algorithms
 from deap import base
 from deap import tools
 from deap import creator
 from scoop import futures
 
 from see import Segmentors
-
 
 '''Executes a crossover between two numpy arrays of the same length '''
 def twoPointCopy(np1, np2):
@@ -77,7 +76,6 @@ def mutate(copyChild, posVals, flipProb=0.5):
                 Z = random.choice(posVals[24])
                 child[index] = (X, Y, Z)
                 continue
-
             child[index] = random.choice(posVals[index])
     return child
 
@@ -120,13 +118,22 @@ def makeToolbox(pop_size):
 
     return toolbox
 
+def initIndividual(icls, content):
+    print(f"In initIndividual={content}")
+    return icls(content)
+
+def initPopulation(pcls, ind_init, filename):
+    with open(filename, "r") as pop_file:
+        contents = json.load(pop_file)
+    return pcls(ind_init(c) for c in contents)
+
 class Evolver(object):
-    
+
     AllVals = []
     p = Segmentors.parameters()
     for key in p.pkeys:
         AllVals.append(eval(p.ranges[key]))   
-    
+
     def __init__(self, img, mask, pop_size=10):
         #Build Population based on size
         self.img = img
@@ -135,11 +142,25 @@ class Evolver(object):
         self.hof = deap.tools.HallOfFame(1)
         self.BestAvgs = []
         self.gen = 0
-        self.cxpb, self.mutpb, self.flipProb = 0.2, 0.3, 0.1
+        self.cxpb, self.mutpb, self.flipProb = 0.9,0.9,0.9
     
     def newpopulation(self):
         return self.tool.population()
+    
+    def writepop(self,tpop, filename='test.json'):
+        print(f"Writting population to {filename}")
+        with open(filename, 'w') as outfile:
+            json.dump(tpop, outfile)
+            
+    def readpop(self, filename='test.json'):
+        print(f"Reading population from {filename}")
+        self.tool.register("population_read", initPopulation, list, creator.Individual, filename)
         
+        self.tool.register("individual_guess", initIndividual, creator.Individual)
+        self.tool.register("population_guess", initPopulation, list, self.tool.individual_guess, "my_guess.json")
+
+        return self.tool.population_read()
+    
         
     def popfitness(self, tpop):
         NewImage = [self.img for i in range(0, len(tpop))]
@@ -182,7 +203,12 @@ class Evolver(object):
     def mutate(self, tpop):
         #Calculate next population
 
-        offspring = self.tool.select(tpop, len(tpop))
+        sz = len(tpop)
+        top = 0 #round(0.1 * sz)
+        var = round(0.4 * sz)
+        ran = sz - top - var
+         
+        offspring = self.tool.select(tpop, var)
         offspring = list(map(self.tool.clone, offspring))  # original code
 
         # crossover
@@ -201,18 +227,32 @@ class Evolver(object):
                 self.tool.mutate(mutant, self.AllVals, self.flipProb)
                 del mutant.fitness.values
 
+        #new
+        pop = self.tool.population()
+        
+        final = boffspring + pop[0:ran]
+                
         # Replacing the old population
-        return offspring
+        return final
 
     def nextgen(self, tpop):
         fitness,tpop = self.popfitness(tpop)
         return self.mutate(tpop)
 
-    
-    def run(self,ngen=10):
-        population = self.newpopulation()
-        for g in range(ngen):
+
+    def run(self,ngen=10, startfile=None, checkpoint=None):
+        if startfile:
+            population = self.readpop(startfile)
+        else:
+            population = self.newpopulation()
+            if checkpoint:
+                self.writepop(population, filename=f"0_{checkpoint}")
+        for g in range(1, ngen+1):
             population = self.nextgen(population)
+            if checkpoint:
+                self.writepop(population, filename=f"{g}_{checkpoint}")
+                for p in range(len(population)):
+                    print(population[p])
         return population
              
 
