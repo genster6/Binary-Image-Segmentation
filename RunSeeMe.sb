@@ -14,7 +14,8 @@ cat $0
 module load powertools
 ### airplanes, trained on 0002, with FB
 #python main.py 134 1000 10 0.5 1 0.5
-srun --unbuffered python SeeMe.py $SLURM_JOB_ID 100 10 0.5 1 0.5 
+#srun --unbuffered python SeeMe.py $SLURM_JOB_ID 100 10 0.5 1 0.5 
+srun --unbuffered python ContinueSee.py $SLURM_JOB_ID 100 10 0.5 1 0.5 
 
 js -j $SLURM_JOB_ID
 

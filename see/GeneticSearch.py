@@ -139,7 +139,7 @@ class Evolver(object):
         self.img = img
         self.mask = mask
         self.tool = makeToolbox(pop_size)
-        self.hof = deap.tools.HallOfFame(1)
+        self.hof = deap.tools.HallOfFame(10)
         self.BestAvgs = []
         self.gen = 0
         self.cxpb, self.mutpb, self.flipProb = 0.9,0.9,0.9
