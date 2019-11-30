@@ -110,7 +110,8 @@ class SegmentImage():
         if len(gmask.shape) > 2:
             gmask = color.rgb2gray(gmask)
         ee = GeneticSearch.Evolver(img, gmask)
-        ee.run(self.GENERATIONS)
+        #ee.run(self.GENERATIONS)
+        population = ee.run(self.GENERATIONS, startfile="0_checkpoint.json", checkpoint="2_checkpoint.json")
 
 if __name__ == '__main__':
     ga = SegmentImage(sys.argv)
