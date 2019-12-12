@@ -129,4 +129,15 @@ Finally, add the algorithm to the *switcher* dictionary in *runAlgo*. The key wi
   * Useful if the images are labeled with more than two colors
 * May have to clone scikit-image from git, as regular installation installs 0.14 and does not include flood_fill
 * We used Python 3.5.3 in order to use the Pillow library. However, with some changes to how we view images, it may be possible to use matplotlib instead. If we use matplotlib, we can use any version of Python.
+
+
+
+# TODO List
+
+* Fix Algorithm Defaults
+* Speed up fitness
+* Seperate Classes into files
+* Testing Framework
+* Refactor Population Genome
+* Make Parallel
   

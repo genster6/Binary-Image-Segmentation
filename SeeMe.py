@@ -1,15 +1,17 @@
-import see
+import argparse
 
 from skimage import color
 import time
 import imageio
 import sys
 
+import see
 from see import GeneticSearch
 
-class SegmentImage():
-    IMAGE_PATH = 'Image_data/Coco_2017_unlabeled//rgbd_plant'
-    GROUNDTRUTH_PATH = 'Image_data/Coco_2017_unlabeled/rgbd_new_label'
+
+class SegmentImage:
+    IMAGE_PATH = "Image_data/Coco_2017_unlabeled//rgbd_plant"
+    GROUNDTRUTH_PATH = "Image_data/Coco_2017_unlabeled/rgbd_new_label"
     SEED = 134
     POPULATION = 10
     GENERATIONS = 2
@@ -19,13 +21,16 @@ class SegmentImage():
     pop = None
     fitnesses = []
 
-    VALIDATION_PATH="" # Not sure how this is used    
+    VALIDATION_PATH = ""  # Not sure how this is used
+
     def __init__(self, argv=[]):
         if argv:
             self.parseinput(argv)
-    
+
     """Function to parse the command line inputs"""
-    def parseinput(self, argv):   
+
+    def parseinput(self, argv):
+
         # The input arguments are Seed, population, generations, mutation, flipprob, crossover
         print("Parsing Inputs")
 
@@ -71,10 +76,14 @@ class SegmentImage():
             self.FLIPPROB = float(argv[5])
             assert 0 <= self.FLIPPROB <= 1
         except ValueError:
-            print("Incorrect value for FLIPPROB. Please input a positive percentage (decimal).")
+            print(
+                "Incorrect value for FLIPPROB. Please input a positive percentage (decimal)."
+            )
             sys.exit(2)
         except AssertionError:
-            print("Incorrect value for FLIPPROB. Please input a positive percentage (decimal).")
+            print(
+                "Incorrect value for FLIPPROB. Please input a positive percentage (decimal)."
+            )
             sys.exit(2)
 
         try:
@@ -82,36 +91,43 @@ class SegmentImage():
             assert 0 <= self.CROSSOVER <= 1
         except ValueError:
             print(
-                "Incorrect value for CROSSOVER. Please input a positive percentage (decimal).")
+                "Incorrect value for CROSSOVER. Please input a positive percentage (decimal)."
+            )
             sys.exit(2)
         except AssertionError:
             print(
-                "Incorrect value for CROSSOVER. Please input a positive percentage (decimal).")
+                "Incorrect value for CROSSOVER. Please input a positive percentage (decimal)."
+            )
             sys.exit(2)
 
+        #         # Checking the directories
+        #         if (FileClass.check_dir(self.IMAGE_PATH) == False):
+        #             print('ERROR: Directory \"%s\" does not exist' % self.IMAGE_PATH)
+        #             sys.exit(1)
 
-#         # Checking the directories
-#         if (FileClass.check_dir(self.IMAGE_PATH) == False):
-#             print('ERROR: Directory \"%s\" does not exist' % self.IMAGE_PATH)
-#             sys.exit(1)
+        #         if(FileClass.check_dir(self.GROUNDTRUTH_PATH) == False):
+        #             print("ERROR: Directory \"%s\" does not exist" % self.VALIDATION_PATH)
+        #             sys.exit(1)
 
-#         if(FileClass.check_dir(self.GROUNDTRUTH_PATH) == False):
-#             print("ERROR: Directory \"%s\" does not exist" % self.VALIDATION_PATH)
-#             sys.exit(1)
-
-        return 
+        return
 
     # TODO rewrite "main" as part of a class or function structure.
     # TODO rewrite to make it pleasently parallel.
     """Function to run the main GA search function"""
     def runsearch(self):
-        img = imageio.imread('Image_data/Coco_2017_unlabeled//rgbd_plant/rgb_00_000_00.png')
-        gmask = imageio.imread('Image_data/Coco_2017_unlabeled/rgbd_new_label/label_00_000_000.png')
+        img = imageio.imread(
+            "Image_data/Coco_2017_unlabeled//rgbd_plant/rgb_00_000_00.png"
+        )
+        gmask = imageio.imread(
+            "Image_data/Coco_2017_unlabeled/rgbd_new_label/label_00_000_000.png"
+        )
         if len(gmask.shape) > 2:
             gmask = color.rgb2gray(gmask)
         ee = GeneticSearch.Evolver(img, gmask)
         ee.run(self.GENERATIONS)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
+
     ga = SegmentImage(sys.argv)
     ga.runsearch()
