@@ -206,7 +206,7 @@ class ColorThreshold(segmentor):
             self.params["sigma"] = 0.6
         self.paramindexes = ["sigma", "mu"]
 
-    def evaluate(self, img):
+    def evaluate(self, img): #XX
         channel_num = 1  # TODO: Need to make this a searchable parameter.
         if len(img.shape) > 2:
             if channel_num < img.shape[2]:
