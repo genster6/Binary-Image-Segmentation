@@ -1,6 +1,7 @@
 
 import matplotlib.pylab as plt
 from ipywidgets import interact
+import ipywidgets as widgets
 
 from see import Segmentors
 
@@ -28,10 +29,40 @@ def showSegment(im, mask):
     showtwo(im1,im2)
 
 
-def paramsearch(im,mask, dx = 110):
-    showtwo(im,mask)
-    return 'test'
+def segmentwidget(params, img, gmask):
+    seg = Segmentors.algoFromParams(params)
+    widg = dict()
+    widglist = []
 
+    for p in seg.paramindexes:
+        thislist = eval(seg.params.ranges[p])
+        disabled = True
+        thiswidg = widgets.SelectionSlider(options=tuple(thislist),
+                                           disabled=False,
+                                           description=p,
+                                           value=seg.params[p],
+                                           continuous_update=False,
+                                           orientation='horizontal',
+                                           readout=True
+                                          )
+        widglist.append(thiswidg)
+        widg[p] = thiswidg
 
-def makewidget(im,mask, params=110):
-    return interact(paramsearch, im=im, mask=mask, dx=(-400,400)); 
+    def f(im =img, mask=gmask, **kwargs):
+        print(seg.params["algorithm"])
+        for k in kwargs:
+            seg.params[k] = kwargs[k]
+        mask = seg.evaluate(img)
+        fit = Segmentors.FitnessFunction(mask,gmask)
+        showSegment(img,mask)
+        plt.title(fit)
+        
+
+    layout = widgets.Layout(grid_template_columns='1fr 1fr 1fr')
+    ui = widgets.GridBox(widglist, layout=layout)
+
+    out = widgets.interactive_output(f, widg)
+    display(ui, out)
+
+    
+    

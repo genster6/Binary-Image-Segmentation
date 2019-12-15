@@ -62,9 +62,7 @@ class parameters(OrderedDict):
     descriptions["scale"] = "A parameter for felzenszwalb"
     ranges["scale"] = "[i for i in range(0,10000)]"
 
-    descriptions[
-        "sigma"
-    ] = "sigma value. A parameter for felzenswalb, inverse_guassian_gradient, slic, and quickshift"
+    descriptions["sigma"] = "sigma value. A parameter for felzenswalb, inverse_guassian_gradient, slic, and quickshift"
     ranges["sigma"] = "[float(i)/100 for i in range(0,10,1)]"
 
     descriptions["min_size"] = "parameter for felzenszwalb"
@@ -100,22 +98,16 @@ class parameters(OrderedDict):
     descriptions["lambda"] = "A parameter for chan_vese and morphological_chan_vese"
     ranges["lambda"] = "[(1,1), (1,2), (2,1)]"
 
-    descriptions[
-        "dt"
-    ] = "#An algorithm for chan_vese May want to make seperate level sets for different functions e.g. Morph_chan_vese vs morph_geo_active_contour"
+    descriptions["dt"] = "#An algorithm for chan_vese May want to make seperate level sets for different functions e.g. Morph_chan_vese vs morph_geo_active_contour"
     ranges["dt"] = "[float(i)/10 for i in range(0,100)]"
 
-    descriptions[
-        "init_level_set_chan"
-    ] = "A parameter for chan_vese and morphological_chan_vese"
+    descriptions["init_level_set_chan"] = "A parameter for chan_vese and morphological_chan_vese"
     ranges["init_level_set_chan"] = "['checkerboard', 'disk', 'small disk']"
 
     descriptions["init_level_set_morph"] = "A parameter for morphological_chan_vese"
     ranges["init_level_set_morph"] = "['checkerboard', 'circle']"
 
-    descriptions[
-        "smoothing"
-    ] = "A parameter used in morphological_geodesic_active_contour"
+    descriptions["smoothing"] = "A parameter used in morphological_geodesic_active_contour"
     ranges["smoothing"] = "[i for i in range(1, 10)]"
 
     descriptions["alpha"] = "A parameter for inverse_guassian_gradient"
