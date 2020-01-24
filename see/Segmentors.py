@@ -922,27 +922,37 @@ def countMatches(inferred, groundTruth):
                 setcounts[i_key][g_key] = 1
     return setcounts, len(m), len(n)
 
+'''
+For each inferred set, find the ground truth set which it maps the most 
+pixels to. So we start from the inferred image, and map towards the 
+ground truth image. For each i_key, the g_key that it maps the most 
+pixels to is considered True. In order to see what ground truth sets
+have a corresponding set(s) in the inferred image, we record these "true" g_keys. 
+This number of true g_keys is the value for L in our fitness function.
+'''
 def countsets(setcounts):
     p = 0
     #L = len(setcounts)
-    
     
     total = 0
     Lsets = set()
     
     best = dict()
     
-    for i_key in setcounts:
+    for i_key in setcounts: 
         mx = 0
         mx_key = ''
         for g_key in setcounts[i_key]:
-            total += setcounts[i_key][g_key]
+            total += setcounts[i_key][g_key] # add to total pixel count
             if setcounts[i_key][g_key] > mx:
                 mx = setcounts[i_key][g_key]
-                mx_key = i_key
+                # mx_key = i_key
+                mx_key = g_key # record mapping with greatest pixel count
         p += mx
-        Lsets.add(g_key)
-        best[i_key] = g_key
+        # Lsets.add(g_key)
+        Lsets.add(mx_key) # add the g_key we consider to be correct
+        # best[i_key] = g_key
+        best[i_key] = mx_key # record "true" mapping
     L = len(Lsets)
     return total-p,L, best
 
