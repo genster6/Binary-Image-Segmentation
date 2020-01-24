@@ -232,6 +232,41 @@ class ColorThreshold(segmentor):
 
 algorithmspace["CT"] = ColorThreshold
 
+class TripleA (segmentor):
+    def __init__(self, paramlist=None):
+        super(TripleA, self).__init__(paramlist)
+        if not paramlist:
+            self.params["algorithm"] = "AAA"
+            self.params["mu"] = 0.4
+            self.params["sigma"] = 0.6
+        self.paramindexes = ["sigma", "mu"]
+
+    def evaluate(self, img): #XX
+        channel_num = 1  # TODO: Need to make this a searchable parameter.
+        if len(img.shape) > 2:
+            if channel_num < img.shape[2]:
+                channel = img[:, :, channel_num]
+            else:
+                channel = img[:, :, 0]
+        else:
+            channel = img
+        pscale = np.max(channel)
+        mx = self.params["sigma"] * pscale
+        mn = self.params["mu"] * pscale
+        if mx < mn:
+            temp = mx
+            mx = mn
+            mn = temp
+
+        output = np.ones(channel.shape)
+        output[channel < mn] = 0
+        output[channel > mx] = 0
+
+        return output
+
+
+algorithmspace["AAA"] = TripleA
+
 """
 #felzenszwalb
 #ONLY WORKS FOR RGB
