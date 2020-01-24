@@ -924,9 +924,10 @@ def FitnessFunction_old(mask1, mask2):
     logging.getLogger().info(f"p={p}, m={m}, n={n}, L={L}")
     
     error = (p + 2) ** np.log(abs(m - n) + 2)  # / (L >= n)
+    print(f"TESTING - L={L} < n={n} p={p} m={m} error = {error} ")
     # error = (repeat_count + 2)**(abs(m - n)+1)
     if (L < n) or error <= 0 or error == np.inf or error == np.nan:
-        logging.warning(
+        print(
             f"WARNING: Fitness bounds exceeded, using Maxsize - {L} < {n} or {error} <= 0 or {error} == np.inf or {error} == np.nan:"
         )
         error = sys.maxsize
@@ -935,75 +936,95 @@ def FitnessFunction_old(mask1, mask2):
         error,
     ]
 
-def countMatches(mask1, mask2):
-    assert (mask1.shape == mask2.shape)    
+def countMatches(inferred, groundTruth):
+    assert (inferred.shape == groundTruth.shape)    
     m = set()
     n = set()
     setcounts = dict()
-    for r in range(mask1.shape[0]):
-        for c in range(mask1.shape[1]):
-            key1 = mask1[r,c]
-            m.add(key1)
-            key2 = mask2[r,c]
-            n.add(key2)
-            if key1 in setcounts:
-                if key2 in setcounts[key1]:
-                    setcounts[key1][key2] += 1
+    for r in range(inferred.shape[0]):
+        for c in range(inferred.shape[1]):
+            i_key = inferred[r,c]
+            m.add(i_key)
+            g_key = groundTruth[r,c]
+            n.add(g_key)
+            if i_key in setcounts:
+                if g_key in setcounts[i_key]:
+                    setcounts[i_key][g_key] += 1
                 else:
-                    setcounts[key1][key2] = 1
+                    setcounts[i_key][g_key] = 1
             else:
-                setcounts[key1] = dict()
-                setcounts[key1][key2] = 1
+                setcounts[i_key] = dict()
+                setcounts[i_key][g_key] = 1
     return setcounts, len(m), len(n)
-            
+
+'''
+For each inferred set, find the ground truth set which it maps the most 
+pixels to. So we start from the inferred image, and map towards the 
+ground truth image. For each i_key, the g_key that it maps the most 
+pixels to is considered True. In order to see what ground truth sets
+have a corresponding set(s) in the inferred image, we record these "true" g_keys. 
+This number of true g_keys is the value for L in our fitness function.
+'''
 def countsets(setcounts):
     p = 0
-    L = len(setcounts)
+    #L = len(setcounts)
+    
     total = 0
-    for key1 in setcounts:
+    Lsets = set()
+    
+    best = dict()
+    
+    for i_key in setcounts: 
         mx = 0
-        for key2 in setcounts[key1]:
-            total += setcounts[key1][key2]
-            if setcounts[key1][key2] > mx:
-                mx = setcounts[key1][key2]
+        mx_key = ''
+        for g_key in setcounts[i_key]:
+            total += setcounts[i_key][g_key] # add to total pixel count
+            if setcounts[i_key][g_key] > mx:
+                mx = setcounts[i_key][g_key]
+                # mx_key = i_key
+                mx_key = g_key # record mapping with greatest pixel count
         p += mx
-    return total-p,L
+        # Lsets.add(g_key)
+        Lsets.add(mx_key) # add the g_key we consider to be correct
+        # best[i_key] = g_key
+        best[i_key] = mx_key # record "true" mapping
+    L = len(Lsets)
+    return total-p,L, best
 
 
 """Takes in two ImageData obects and compares them according to
 skimage's Structual Similarity Index and the mean squared error
 Variables:
-img1 is an image array segmented by the algorithm.
-img2 is the validation image
+img1 is the validation image
+img2 is an image array segmented by the algorithm.
 imgDim is the number of dimensions of the image.
 """
-def FitnessFunction(mask1, mask2):
+def FitnessFunction(inferred, groundTruth):
     # makes sure images are in grayscale
-    if len(mask1.shape) > 2:
-        logging.getLogger().info("mask1 not in grayscale")
-        mask1 = color.rgb2gray(mask1)
-    if len(mask2.shape) > 2:  # comment out
+    if len(inferred.shape) > 2:
+        logging.getLogger().info("inferred not in grayscale")
+        inferred = color.rgb2gray(inferred)
+    if len(groundTruth.shape) > 2:  # comment out
         logging.getLogger().info("img2 not in grayscale")
-        mask2 = color.rgb2gray(mask2)  # comment out
-
+        groundTruth = color.rgb2gray(groundTruth)  # comment out
+    
     # Replace with function to output p an L
     # p - number of pixels not correcly mapped
     # L - Number of correctly mapped sets
-    setcounts, m, n = countMatches(mask1, mask2)
+    setcounts, m, n = countMatches(inferred, groundTruth)
     
     #print(setcounts)
-    p, L = countsets(setcounts)
+    p, L, best = countsets(setcounts)
     
     logging.getLogger().info(f"p={p}, m={m}, n={n}, L={L}")
     
     error = (p + 2) ** np.log(abs(m - n) + 2)  # / (L >= n)
     # error = (repeat_count + 2)**(abs(m - n)+1)
+    print(f"TESTING - L={L} < n={n} p={p} m={m} error = {error} ")
     if (L < n) or error <= 0 or error == np.inf or error == np.nan:
         logging.warning(
             f"WARNING: Fitness bounds exceeded, using Maxsize - {L} < {n} or {error} <= 0 or {error} == np.inf or {error} == np.nan:"
         )
         error = sys.maxsize
         # print(error)
-    return [
-        error,
-    ]
+    return [error, best]
