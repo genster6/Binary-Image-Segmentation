@@ -793,6 +793,7 @@ algorithmspace["AC"] = MorphGeodesicActiveContour
 #         return output
 
 
+
 """
 function to calculate number of sets in our test image
 that map to more than one set in our truth image, and how many
@@ -822,7 +823,7 @@ def set_fitness_func(a_test, b_test, include_L=False):
     # count number of pixels for each set pairing
     set_counts = {}
     for i in unique_sets:
-        set_counts[i] = sum(np.core.defchararray.count(matched, i))
+        set_counts[i] = sum(matched[:] == i)#sum(np.core.defchararray.count(matched, i))
 
     # print statements for debugging
     #     print('UNIQUE: ', unique_sets) # see set pairings
