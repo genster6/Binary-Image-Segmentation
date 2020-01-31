@@ -9,8 +9,24 @@ from deap import tools
 from deap import creator
 from scoop import futures
 import logging
+import inspect
 
 from see import Segmentors
+
+''' prints usable code to run segmentation algorithm based on an individuals
+genetic representation vector
+'''
+def printBestAlgorithmCode(individual):
+    ind_algo = Segmentors.algoFromParams(individual)
+    original_function = inspect.getsource(ind_algo.evaluate)
+    function_contents = original_function[original_function.find('        '):original_function.find('return')]
+    while function_contents.find('self.params') != -1:
+        function_contents = function_contents.replace(
+            function_contents[function_contents.find('self.params'):function_contents.find('\"]')+2], 
+            str(ind_algo.params[function_contents[function_contents.find('self.params') + 
+            13:function_contents.find('\"]')]]))
+    function_contents = function_contents.replace('        ', '')
+    print(function_contents)
 
 '''Executes a crossover between two numpy arrays of the same length '''
 def twoPointCopy(np1, np2):
@@ -267,3 +283,4 @@ class Evolver(object):
                 for p in range(len(population)):
                     logging.getLogger().info(population[p])
         return population
+
