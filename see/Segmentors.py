@@ -412,6 +412,8 @@ class QuickShift(segmentor):
 algorithmspace["QS"] = QuickShift
 
 
+#TODO: This algorithm seems to need a channel input. We should fix that.
+
 class Watershed(segmentor):
     """
     #Watershed
@@ -440,8 +442,10 @@ class Watershed(segmentor):
         self.paramindexes = ["compactness"]
 
     def evaluate(self, img):
+        channel = 0
+        channel_Img = img[:,:,channel]
         output = skimage.segmentation.watershed(
-            img, markers=None, compactness=self.params["compactness"]
+            channel_Img, markers=None, compactness=self.params["compactness"]
         )
         return output
 
@@ -1028,4 +1032,4 @@ def FitnessFunction(inferred, groundTruth):
         )
         error = sys.maxsize
         # print(error)
-    return [error, best]
+    return [error, best] #TODO: Are we using best?
