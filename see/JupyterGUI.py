@@ -22,6 +22,7 @@ def showthree(im, img, img2):
     ax.imshow(img2)
     
 def showSegment(im, mask):
+    """This dosn't quite work for segmented images without a zero background"""
     im1 = im.copy()
     im2 = im.copy()
     im1[mask>0,:] = 0
@@ -48,14 +49,14 @@ def segmentwidget(params, img, gmask):
         widglist.append(thiswidg)
         widg[p] = thiswidg
 
-    def f(im =img, mask=gmask, **kwargs):
+    def f(im=img, gmask=gmask, **kwargs):
         print(seg.params["algorithm"])
         for k in kwargs:
             seg.params[k] = kwargs[k]
         mask = seg.evaluate(img)
         fit = Segmentors.FitnessFunction(mask,gmask)
-        showSegment(img,mask)
-        plt.title(fit)
+        showtwo(img,mask)
+        plt.title(fit[0])
         
 
     layout = widgets.Layout(grid_template_columns='1fr 1fr 1fr')
