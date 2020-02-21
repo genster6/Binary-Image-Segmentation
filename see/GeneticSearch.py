@@ -11,7 +11,9 @@ from scoop import futures
 import logging
 import inspect
 
-from see import Segmentors
+# from see import Segmentors
+# from see import Segmentors_MinParams as Segmentors
+from see import Segmentors_OrgAndReducedParams as Segmentors
 
 ''' prints usable code to run segmentation algorithm based on an individuals
 genetic representation vector
