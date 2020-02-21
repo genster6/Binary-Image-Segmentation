@@ -1021,7 +1021,7 @@ def FitnessFunction(inferred, groundTruth):
     
     error = (p + 2) ** np.log(abs(m - n) + 2)  # / (L >= n)
     # error = (repeat_count + 2)**(abs(m - n)+1)
-    print(f"TESTING - L={L} < n={n} p={p} m={m} error = {error} ")
+    # print(f"TESTING - L={L} < n={n} p={p} m={m} error = {error} ")
     if (L < n) or error <= 0 or error == np.inf or error == np.nan:
         logging.warning(
             f"WARNING: Fitness bounds exceeded, using Maxsize - {L} < {n} or {error} <= 0 or {error} == np.inf or {error} == np.nan:"
