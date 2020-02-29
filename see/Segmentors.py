@@ -84,7 +84,7 @@ class parameters(OrderedDict):
     ranges["max_dist"] = "[i for i in range(0,10000)]"
 
     descriptions["seed"] = "A parameter for quickshift, and perhaps other random stuff"
-    ranges["seed"] = "[134]"
+    ranges["seed"] = "[0, 1, 2, 3, 4, 5]"
 
     descriptions["connectivity"] = "A parameter for flood and floodfill"
     ranges["connectivity"] = "[i for i in range(0, 9)]"
@@ -207,12 +207,14 @@ class ColorThreshold(segmentor):
         self.paramindexes = ["sigma", "mu"]
 
     def evaluate(self, img): #XX
-        channel_num = 1  # TODO: Need to make this a searchable parameter.
+        channel_num = self.params["seed"]
         if len(img.shape) > 2:
-            if channel_num < img.shape[2]:
+            num_channels = img.shape[2]
+            if channel_num < num_channels:
                 channel = img[:, :, channel_num]
             else:
-                channel = img[:, :, 0]
+                hsv = skimage.color.rgb2hsv(img)
+                channel = hsv[:, :, channel_num-num_channels]
         else:
             channel = img
         pscale = np.max(channel)
