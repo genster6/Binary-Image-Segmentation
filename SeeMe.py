@@ -19,12 +19,13 @@ class SegmentImage:
     FLIPPROB = 0
     CROSSOVER = 0
     pop = None
+    JOBID = "EMPTY"
     fitnesses = []
 
     VALIDATION_PATH = ""  # Not sure how this is used
 
     def __init__(self, argv=[]):
-        if argv:
+        if len(argv) > 1:
             self.parseinput(argv)
 
     """Function to parse the command line inputs"""

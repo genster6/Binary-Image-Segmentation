@@ -11,9 +11,9 @@ from scoop import futures
 import logging
 import inspect
 
-# from see import Segmentors
+from see import Segmentors
 # from see import Segmentors_MinParams as Segmentors
-from see import Segmentors_OrgAndReducedParams as Segmentors
+# from see import Segmentors_OrgAndReducedParams as Segmentors
 
 ''' prints usable code to run segmentation algorithm based on an individuals
 genetic representation vector
@@ -279,8 +279,16 @@ class Evolver(object):
             if checkpoint:
                 self.writepop(population, filename=f"0_{checkpoint}")
         for g in range(1, ngen+1):
+            print(f"generation {g} of population size {len(population)}")
             population = self.nextgen(population)
+
+            seg = Segmentors.algoFromParams(self.hof[0])
+            mask = seg.evaluate(self.img)
+            fitness = Segmentors.FitnessFunction(self.mask,mask)
+            print(f"#BEST - {fitness} - {self.hof[0]}")
+            
             if checkpoint:
+                print(f"Writing Checkpoint file")
                 self.writepop(population, filename=f"{g}_{checkpoint}")
                 for p in range(len(population)):
                     logging.getLogger().info(population[p])
