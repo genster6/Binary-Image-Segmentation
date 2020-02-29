@@ -17,7 +17,11 @@ mkdir -p $out_folder
 
 srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}search.out 
 
-srun xvfb-run python CocoReport.py -o $outfolder 
+cp CocoReport.ipynb ${out_folder}
+
+cd ${out_folder}
+
+srun jupyter nbconvert --no-input --allow-errors --execute --to html CocoReport.ipynb
 
 module load powertools
 js -j $SLURM_JOB_ID

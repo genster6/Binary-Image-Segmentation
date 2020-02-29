@@ -13,12 +13,16 @@ import see
 from see import GeneticSearch
 from see import Segmentors
 
+import pathlib
+
+
+
 def getCocoFolderLists(outputfolder=''):
     '''The Coco data has some odd filenames. This figures it out and creates
     Three lists for image, mask and output data.'''
-    
-    imagefolder = "Image_data/Coco_2017_unlabeled/rgbd_plant/"
-    maskfolder = "Image_data/Coco_2017_unlabeled/rgbd_new_label"
+    pth = pathlib.Path(__file__).parent.absolute()
+    imagefolder = str(pth)+"/Image_data/Coco_2017_unlabeled/rgbd_plant/"
+    maskfolder = str(pth)+"/Image_data/Coco_2017_unlabeled/rgbd_new_label"
 
     imagenames = glob.glob(f'{imagefolder}/rgb*.png')
     imagenames.sort()
