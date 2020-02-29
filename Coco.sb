@@ -1,0 +1,22 @@
+#!/bin/bash --login
+#SBATCH -c 1
+#SBATCH -n 1
+#SBATCH --time=4:00:00
+#SBATCH --mem=2gb
+#SBATCH --mail-type=END
+#SBATCH --array 1-300
+
+#Log a copy of this script in the output file
+cat $0
+
+out_folder=output/${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}/
+echo Output sent to $out_folder 
+mkdir -p $out_folder 
+
+srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 1000 -s ${SLURM_ARRAY_TASK_ID} 
+
+module load powertools
+js -j $SLURM_JOB_ID
+
+
+echo "Done"
