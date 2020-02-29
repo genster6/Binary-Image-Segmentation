@@ -5,15 +5,19 @@
 #SBATCH --mem=2gb
 #SBATCH --mail-type=END
 #SBATCH --array 1-300
+#SBATCH --output "./HPC_output/slurmoutput/%a_%A_slurm_output.txt"
+
 
 #Log a copy of this script in the output file
 cat $0
 
-out_folder=output/${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}/
+out_folder=HPC_output/${SLURM_ARRAY_TASK_ID}/${SLURM_JOB_ID}/
 echo Output sent to $out_folder 
 mkdir -p $out_folder 
 
-srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 1000 -s ${SLURM_ARRAY_TASK_ID} 
+srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}search.out 
+
+srun xvfb-run python CocoReport.py -o $outfolder 
 
 module load powertools
 js -j $SLURM_JOB_ID

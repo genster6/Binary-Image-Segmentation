@@ -68,7 +68,7 @@ plt.savefig(outputfolder+figurename)
 reportfile.write(f"![histogram of fitnesses < 500]({figurename})\n")
 
 ###How fitness changes over time
-file = open("testoutput.out","r") 
+file = open(f"{outputfolder}search.out","r") 
 match = ''
 tfitness = []
 for line in file.readlines():
