@@ -5,26 +5,39 @@
 #SBATCH --mem=2gb
 #SBATCH --mail-type=END
 #SBATCH --array 1-300
-#SBATCH --output "./HPC_output/slurmoutput/%a_%A_slurm_output.txt"
-
+#SBATCH --output "./HPC_output/%a_%A_slurm.output"
 
 #Log a copy of this script in the output file
 cat $0
 
-out_folder=HPC_output/${SLURM_ARRAY_TASK_ID}/${SLURM_JOB_ID}/
+echo "Job running on ${HOSTNAME}"
+
+out_folder=${TMPDIR}/${SLURM_ARRAY_TASK_ID}/
 echo Output sent to $out_folder 
 mkdir -p $out_folder 
 
-srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}search.out 
+srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}/search.out 
 
 cp CocoReport.ipynb ${out_folder}
 
 cd ${out_folder}
-
 srun jupyter nbconvert --no-input --allow-errors --execute --to html CocoReport.ipynb
 
+cp CocoReport.html ${SLURM_SUBMIT_DIR}/HPC_output/${SLURM_ARRAY_TASK_ID}_Report.html 
+
+#zip up this folder
+cd ${TMPDIR}
+tarfile=${SLURM_ARRAY_TASK_ID}_jobfiles.tgz
+tar -czvf ${SLURM_SUBMIT_DIR}/HPC_output/${tarfile} ./${SLURM_ARRAY_TASK_ID}/ 
+
+#House Cleaning
+cd ${SLURM_SUBMIT_DIR} 
+rm -rf ${TMPDIR}/*
+
+#Job Statistics
 module load powertools
 js -j $SLURM_JOB_ID
 
-
 echo "Done"
+
+##########################
