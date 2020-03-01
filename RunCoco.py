@@ -96,7 +96,8 @@ if __name__ == "__main__":
         #Run random Search
         random.seed(args.seed)
         ee = GeneticSearch.Evolver(img, gmask, pop_size=args.pop)
-        ee.run(args.generations)# TODO: ADD THIS, checkpoint=args.checkpointfile)
+        population = ee.run(args.generations)# TODO: ADD THIS, checkpoint=args.checkpointfile)
+        ee.writepop(population, filename=f"{args.outputfolder}Population_checkpoint.txt")
         params = ee.hof[0]
 
     #Create segmentor from params
