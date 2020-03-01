@@ -71,18 +71,17 @@ if __name__ == "__main__":
 
     population = ''
     #Create Segmentor
-    if args.checkpoint:
-        if os.path.exists(args.checkpoint):
-            if os.path.isfile(args.checkpoint):
-                #Read in checkpoint file
-            else if os.path.isdir(args.checkpoint):
-                #find checkpoint.txt in directory
-            population = self.readpop(startfile)
+    startfile = f"{args.outputfolder}Population_checkpoint.txt"}
+    
+    if startfile:
+        if os.path.exists(checkfile)
             params = ''
         else:
             params = eval(args.checkpoint)
+            startfile = None
     else:
         params=''
+        startfile=None
     print(f"Algorithm={params}")
 
 
@@ -105,7 +104,7 @@ if __name__ == "__main__":
         #Run random Search
         random.seed(args.seed)
         ee = GeneticSearch.Evolver(img, gmask, pop_size=args.pop)
-        population = ee.run(args.generations)# TODO: ADD THIS, checkpoint=args.checkpointfile)
+        population = ee.run(args.generations, startfile=startfile)# TODO: ADD THIS, checkpoint=args.checkpointfile)
         ee.writepop(population, filename=f"{args.outputfolder}Population_checkpoint.txt")
         params = ee.hof[0]
 
