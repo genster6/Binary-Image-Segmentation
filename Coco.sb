@@ -18,6 +18,15 @@ out_folder=${TMPDIR}/${SLURM_ARRAY_TASK_ID}/
 echo Output sent to $out_folder 
 mkdir -p $out_folder 
 
+tarfile=${SLURM_ARRAY_TASK_ID}_jobfiles.tgz
+if [ -f ${out_folder}/${tarfile} ]
+then
+	cp ${out_folder}/${tarfile} ${TMPDIR}
+	cd ${TMPDIR}
+	tar -xzvf $tarfile
+	cd ${SLURM_SUBMIT_DIR}
+fi
+
 srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}/search.out 
 
 cp CocoReport.ipynb ${out_folder}
@@ -29,7 +38,6 @@ cp CocoReport.html ${SLURM_SUBMIT_DIR}/HPC_output/${SLURM_ARRAY_TASK_ID}_Report.
 
 #zip up this folder
 cd ${TMPDIR}
-tarfile=${SLURM_ARRAY_TASK_ID}_jobfiles.tgz
 tar -czvf ${SLURM_SUBMIT_DIR}/HPC_output/${tarfile} ./${SLURM_ARRAY_TASK_ID}/ 
 
 #House Cleaning
