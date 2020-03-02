@@ -277,10 +277,11 @@ class Evolver(object):
         else:
             population = self.newpopulation()
             if checkpoint:
-                self.writepop(population, filename=f"0_{checkpoint}")
+                self.writepop(population, filename=f"{checkpoint}")
         for g in range(1, ngen+1):
             print(f"generation {g} of population size {len(population)}")
-            population = self.nextgen(population)
+            if population = '':
+                population = self.nextgen(population)
 
             seg = Segmentors.algoFromParams(self.hof[0])
             mask = seg.evaluate(self.img)
@@ -288,8 +289,8 @@ class Evolver(object):
             print(f"#BEST - {fitness} - {self.hof[0]}")
             
             if checkpoint:
-                print(f"Writing Checkpoint file")
-                self.writepop(population, filename=f"{g}_{checkpoint}")
+                print(f"Writing Checkpoint file - {checkpoint}")
+                self.writepop(population, filename=f"{checkpoint}_{g}")
                 for p in range(len(population)):
                     logging.getLogger().info(population[p])
         return population

@@ -38,8 +38,8 @@ def getCocoFolderLists(outputfolder=''):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run the see-Semgent algorithm')
-    parser.add_argument("-a", "--algorithm", 
-                        help="string for algorithm", 
+    parser.add_argument("-c", "--checkpoint", 
+                        help="Starting Population", 
                         type=str, default="")
     parser.add_argument("-g", "--generations", 
                         help="Number of Generations to run in search", 
@@ -69,9 +69,18 @@ if __name__ == "__main__":
     #Make List of all files
     imagefiles, maskfiles, outputfiles = getCocoFolderLists(outputfolder=args.outputfolder)
 
+    population = ''
     #Create Segmentor
-    if args.algorithm:
-        params = eval(args.algorithm)
+    if args.checkpoint:
+        if os.path.exists(args.checkpoint):
+            if os.path.isfile(args.checkpoint):
+                #Read in checkpoint file
+            else if os.path.isdir(args.checkpoint):
+                #find checkpoint.txt in directory
+            population = self.readpop(startfile)
+            params = ''
+        else:
+            params = eval(args.checkpoint)
     else:
         params=''
     print(f"Algorithm={params}")
