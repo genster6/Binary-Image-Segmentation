@@ -21,10 +21,12 @@ mkdir -p $out_folder
 tarfile=${SLURM_ARRAY_TASK_ID}_jobfiles.tgz
 if [ -f ${out_folder}/${tarfile} ]
 then
+	echo "Loading Checkpoint"
 	cp ${out_folder}/${tarfile} ${TMPDIR}
 	cd ${TMPDIR}
 	tar -xzvf $tarfile
 	cd ${SLURM_SUBMIT_DIR}
+	
 fi
 
 srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}/search.out 
@@ -32,7 +34,7 @@ srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 
 cp CocoReport.ipynb ${out_folder}
 
 cd ${out_folder}
-srun jupyter nbconvert --no-input --allow-errors --execute --to html CocoReport.ipynb
+srun time jupyter nbconvert --no-input --allow-errors --execute --to html CocoReport.ipynb
 
 cp CocoReport.html ${SLURM_SUBMIT_DIR}/HPC_output/${SLURM_ARRAY_TASK_ID}_Report.html 
 

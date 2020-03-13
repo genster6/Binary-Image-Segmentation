@@ -280,8 +280,7 @@ class Evolver(object):
                 self.writepop(population, filename=f"{checkpoint}")
         for g in range(1, ngen+1):
             print(f"generation {g} of population size {len(population)}")
-            if population = '':
-                population = self.nextgen(population)
+            population = self.nextgen(population)
 
             seg = Segmentors.algoFromParams(self.hof[0])
             mask = seg.evaluate(self.img)
