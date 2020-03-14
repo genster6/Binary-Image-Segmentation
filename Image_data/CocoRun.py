@@ -20,8 +20,8 @@ def getCocoFolderLists(outputfolder=''):
     '''The Coco data has some odd filenames. This figures it out and creates
     Three lists for image, mask and output data.'''
     pth = pathlib.Path(__file__).parent.absolute()
-    imagefolder = str(pth)+"/Image_data/Coco_2017_unlabeled/rgbd_plant/"
-    maskfolder = str(pth)+"/Image_data/Coco_2017_unlabeled/rgbd_new_label"
+    imagefolder = str(pth)+"/../Image_data/Coco_2017_unlabeled/rgbd_plant/"
+    maskfolder = str(pth)+"/../Image_data/Coco_2017_unlabeled/rgbd_new_label"
 
     imagenames = glob.glob(f'{imagefolder}/rgb*.png')
     imagenames.sort()
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                         default=0)
     parser.add_argument("-o", "--outputfolder", 
                         help="Output Folder", 
-                        type=str, default="./output/")
+                        type=str, default="./CocoOutput/")
 
     #Parsing Inputs
     args = parser.parse_args()
