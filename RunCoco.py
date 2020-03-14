@@ -5,6 +5,7 @@ import logging
 import sys
 import glob
 import os
+from pathlib import Path
 
 from skimage import color
 import imageio
@@ -14,8 +15,6 @@ from see import GeneticSearch
 from see import Segmentors
 
 import pathlib
-
-
 
 def getCocoFolderLists(outputfolder=''):
     '''The Coco data has some odd filenames. This figures it out and creates
@@ -66,6 +65,10 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
     #logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
+    #Create output folder if dosn't exist
+    Path(args.outputfolder).mkdir(parents=True, exist_ok=True)
+
+    
     #Make List of all files
     imagefiles, maskfiles, outputfiles = getCocoFolderLists(outputfolder=args.outputfolder)
 
