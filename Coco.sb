@@ -29,7 +29,7 @@ then
 	
 fi
 
-srun --unbuffered python RunCoco.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}/search.out 
+srun --unbuffered python CocoRun.py -o $out_folder -i ${SLURM_ARRAY_TASK_ID} -g 100 -p 500 -s ${SLURM_ARRAY_TASK_ID} > ${out_folder}/search.out 
 
 cp CocoReport.ipynb ${out_folder}
 
